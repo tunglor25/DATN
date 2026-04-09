@@ -239,4 +239,50 @@ class AuthController extends Controller
             ? redirect()->route('home')->with('success', 'Thay đổi mật khẩu thành công!')
             : back()->withErrors(['email' => [__($status)]]);
     }
+
+    // Google Socialite Login
+    public function redirectToGoogle()
+    {
+        return \Laravel\Socialite\Facades\Socialite::driver('google')->redirect();
+    }
+
+    public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = \Laravel\Socialite\Facades\Socialite::driver('google')->user();
+
+            $user = User::where('email', $googleUser->getEmail())->first();
+
+            if ($user) {
+                if (!$user->google_id) {
+                    $user->update([
+                        'google_id' => $googleUser->getId(),
+                        'avatar' => $googleUser->getAvatar(),
+                    ]);
+                }
+                
+                if ($user->status === 'banned') {
+                    return redirect('/')->with('error', 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.');
+                }
+                
+                Auth::login($user);
+            } else {
+                $newUser = User::create([
+                    'name' => $googleUser->getName(),
+                    'email' => $googleUser->getEmail(),
+                    'google_id' => $googleUser->getId(),
+                    'avatar' => $googleUser->getAvatar(),
+                    'password' => null,
+                    'role' => 'user',
+                    'status' => 'active',
+                    'email_verified_at' => now(),
+                ]);
+                Auth::login($newUser);
+            }
+
+            return redirect('/');
+        } catch (\Exception $e) {
+            return redirect('/')->with('error', 'Lỗi đăng nhập bằng Google: ' . $e->getMessage());
+        }
+    }
 }

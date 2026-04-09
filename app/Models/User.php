@@ -29,6 +29,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'role',
         'status',
         'gender', // nếu có cột gender thì thêm vào
+        'google_id',
+        'avatar',
     ];
 
     /**

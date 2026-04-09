@@ -189,10 +189,10 @@
     cursor: pointer;
 }
 
-/* Size grid */
+/* Size & Attribute grid */
 .size-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    display: flex;
+    flex-wrap: wrap;
     gap: 8px;
     margin-top: 4px;
 }
@@ -202,6 +202,8 @@
     align-items: center;
     justify-content: center;
     height: 36px;
+    padding: 0 12px;
+    min-width: 48px;
     border: 1px solid var(--tlo-border);
     border-radius: 10px;
     font-size: 0.82rem;
@@ -210,6 +212,7 @@
     background: var(--tlo-surface);
     cursor: pointer;
     transition: var(--tlo-transition);
+    white-space: nowrap;
 }
 
 .size-btn:hover {

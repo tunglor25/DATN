@@ -358,7 +358,7 @@
                     <button type="submit" class="btn btn-login text-white">Đăng nhập</button>
                     <div class="divider"><span>hoặc đăng nhập bằng</span></div>
                     <div class="social-login">
-                        <button type="button" class="btn btn-social">
+                        <a href="{{ route('auth.google') }}" class="btn btn-social btn-google text-decoration-none text-dark bg-white">
                             <svg xml:space="preserve" style="enable-background:new 0 0 512 512;" viewBox="0 0 512 512"
                                 y="0px" x="0px" xmlns:xlink="http://www.w3.org/1999/xlink"
                                 xmlns="http://www.w3.org/2000/svg" id="Layer_1" width="20" version="1.1">
@@ -377,7 +377,7 @@
  C318.115,0,375.068,22.126,419.404,58.936z" style="fill:#F14336;"></path>
 
                             </svg> Google
-                        </button>
+                        </a>
                         <button type="button" class="btn btn-social">
                             <i class="fab fa-facebook-f" style="color: #0e5ab6"></i> Facebook
                         </button>

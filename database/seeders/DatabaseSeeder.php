@@ -18,5 +18,9 @@ class DatabaseSeeder extends Seeder
             PostSeeder::class,
             BrandSeeder::class,
         ]);
+        $this->call(ProductsTableSeeder::class);
+        $this->call(ProductVariantsTableSeeder::class);
+        $this->call(VariantAttributeValuesTableSeeder::class);
+        $this->call(PostsTableSeeder::class);
     }
 }

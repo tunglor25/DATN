@@ -212,11 +212,8 @@
 /* Products slider */
 .products-slider {
     position: relative;
-    width: 50%;
-    max-width: 920px;
     flex: 1;
-    height: 330px;
-    margin: 0 auto;
+    min-width: 0; /* Important for flex items with scrolling children */
 }
 
 .slider-container {
