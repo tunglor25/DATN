@@ -1,16 +1,24 @@
 /* Base styles */
 :root {
-    --primary-color: #ab4b38;
-    --primary-hover: #8a3a2a;
-    --dark-color: #282936;
-    --border-radius: 10px;
-    --box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    --transition: all 0.3s ease;
+    --primary-color: #ff6b6b;
+    --primary-hover: #e85d5d;
+    --dark-color: #1a1a2e;
+    --border-radius: 12px;
+    --box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --home-max-width: 1440px;
+}
+
+/* Home page content wrapper */
+.home-page-content {
+    max-width: var(--home-max-width);
+    margin: 0 auto;
+    padding: 0 32px;
 }
 
 /* Top banners container */
 .top-banners-container {
-    max-width: 1200px;
+    max-width: 100%;
     width: 100%;
     margin: 0 auto;
 }
@@ -115,29 +123,31 @@
     align-items: center;
     justify-content: center;
     margin: 50px auto 30px;
-    max-width: 1200px;
+    max-width: 100%;
     padding: 0 20px;
 }
 
 .section-title {
-    font-size: 2rem;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
     font-weight: 700;
-    color: #333;
+    color: var(--dark-color);
     margin: 0 20px;
     text-align: center;
     text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .section-title-line {
     flex-grow: 1;
     height: 2px;
-    background-color: #ab4b38;
+    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
 }
 
 /* Wide banner styles */
 .wide-banner {
     width: 100%;
-    max-width: 1200px;
+    max-width: 100%;
     height: 150px;
     position: relative;
     margin: 0 auto 30px;
@@ -173,7 +183,7 @@
 /* Two column layout */
 .two-column-layout {
     width: 100%;
-    max-width: 1200px;
+    max-width: 100%;
     margin: 0 auto;
     display: flex;
     gap: 20px;
@@ -228,7 +238,7 @@
     transform: translateY(-50%);
     width: 50px;
     height: 50px;
-    background: rgba(171, 75, 56, 0.9);
+    background: rgba(255, 107, 107, 0.9);
     color: white;
     border: none;
     border-radius: 50%;
@@ -240,11 +250,11 @@
     transition: all 0.3s ease;
     opacity: 0;
     visibility: hidden;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 16px rgba(255, 107, 107, 0.3);
 }
 
 .slider-nav-btn:hover {
-    background: rgba(138, 58, 42, 1);
+    background: rgba(232, 93, 93, 1);
     transform: translateY(-50%) scale(1.1);
 }
 
@@ -340,18 +350,20 @@
     position: relative;
     width: 240px;
     background: white;
-    border-radius: var(--border-radius);
+    border-radius: 16px;
     padding: 0.3rem;
-    box-shadow: var(--box-shadow);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
     transition: var(--transition);
     flex: 0 0 auto;
     scroll-snap-align: start;
     overflow: hidden;
+    border: 1px solid #e2e8f0;
 }
 
 .product-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-6px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+    border-color: rgba(255, 107, 107, 0.2);
 }
 
 .product-card .image-container {
@@ -450,20 +462,23 @@
 }
 
 .product-card .brand {
-    font-weight: 900;
-    color: #a6a6a6;
-    font-size: 0.8rem;
+    font-weight: 600;
+    color: #94a3b8;
+    font-size: 0.75rem;
     margin-bottom: 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .product-card .product-name {
     font-weight: 700;
     color: var(--dark-color);
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     margin: 0.3rem 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-family: 'Inter', sans-serif;
 }
 
 .product-card .short-description {
@@ -779,7 +794,7 @@
 
 /* News slider */
 .news-slider-container {
-    max-width: 1200px;
+    max-width: 100%;
     margin: 40px auto;
     padding: 0 40px;
     position: relative;
@@ -796,7 +811,7 @@
     transform: translateY(-50%);
     width: 50px;
     height: 50px;
-    background: rgba(171, 75, 56, 0.8);
+    background: rgba(255, 107, 107, 0.85);
     color: white;
     border: none;
     border-radius: 50%;
@@ -808,6 +823,7 @@
     transition: all 0.3s ease;
     opacity: 0;
     visibility: hidden;
+    box-shadow: 0 4px 16px rgba(255, 107, 107, 0.3);
 }
 
 .news-slider-container:hover .news-slider-prev,
@@ -831,7 +847,7 @@
 
 .news-slider-prev:hover,
 .news-slider-next:hover {
-    background: rgba(138, 58, 42, 0.9);
+    background: rgba(232, 93, 93, 1);
 }
 
 .news-slider {
@@ -854,17 +870,19 @@
     flex: 0 0 calc(33.333% - 14px);
     min-width: 0;
     background: #fff;
-    border-radius: 10px;
+    border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
     transition: all 0.3s ease;
     position: relative;
     scroll-snap-align: start;
+    border: 1px solid #e2e8f0;
 }
 
 .news-slide:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    transform: translateY(-8px);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.1);
+    border-color: rgba(255, 107, 107, 0.2);
 }
 
 .news-date-box {
@@ -874,7 +892,7 @@
     width: 60px;
     height: 60px;
     background: rgba(255, 255, 255, 0.9);
-    border: 2px solid #ab4b38;
+    border: 2px solid var(--primary-color);
     border-radius: 8px;
     display: flex;
     flex-direction: column;
@@ -894,14 +912,14 @@
 .news-month {
     font-size: 12px;
     font-weight: 700;
-    color: #ab4b38;
+    color: var(--primary-color);
     text-transform: uppercase;
 }
 
 .news-date {
     font-size: 20px;
     font-weight: 900;
-    color: #ab4b38;
+    color: var(--primary-color);
     line-height: 1;
 }
 
@@ -919,46 +937,61 @@
 .news-content {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    height: 280px;
+    height: 260px;
     padding: 20px;
 }
 
 .news-publish-date {
     display: block;
     font-size: 12px;
-    color: #666;
+    color: #94a3b8;
     margin-bottom: 8px;
+    flex-shrink: 0;
 }
 
 .news-title {
+    font-family: 'Playfair Display', serif;
     font-size: 18px;
     margin: 0 0 10px;
-    color: #333;
+    color: #1a1a2e;
     line-height: 1.3;
+    font-weight: 600;
+    flex-shrink: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .news-excerpt {
     font-size: 14px;
-    color: #666;
+    color: #64748b;
     margin-bottom: 15px;
     line-height: 1.5;
+    flex-shrink: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .readmore-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #ab4b38;
-    border-radius: 10px;
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    border-radius: 12px;
     padding: 0px 15px;
     gap: 0px;
     color: white;
     text-decoration: none;
     transition: all 0.4s;
     width: fit-content;
-    height: 55px;
+    height: 48px;
     margin-top: auto;
+    box-shadow: 0 4px 16px rgba(255, 107, 107, 0.25);
 }
 
 .book-wrapper {
@@ -982,7 +1015,9 @@
 }
 
 .readmore-btn:hover {
-    background-color: #8a3a2a;
+    background: linear-gradient(135deg, #e85d5d, #d14e1e);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(255, 107, 107, 0.35);
 }
 
 @keyframes paging {

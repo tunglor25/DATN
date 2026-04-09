@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'SneakerHub - Premium Footwear')</title>
+    <title>@yield('title', 'TLO Fashion - Fashion is a Lifestyle')</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -14,6 +14,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('build/css/client-design-system.css') }}">
+    @yield('styles')
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
@@ -28,7 +31,7 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--light-color);
             color: #333;
             padding-top: 72px;
@@ -49,6 +52,14 @@
             max-width: 1200px;
             width: 100%;
             margin: 0 auto;
+        }
+
+        /* Allow full-width pages to break out of main-content */
+        .main-content:has(.about-page),
+        .main-content:has(.news-page),
+        .main-content:has(.tlo-full-width) {
+            max-width: 100%;
+            padding: 0;
         }
 
         #nprogress .bar {
@@ -282,6 +293,21 @@
             const message = error.responseJSON?.message || error.message || 'An error occurred';
             showNotification('Error', message, 'error');
         });
+    </script>
+
+    <!-- Global scroll animation observer -->
+    <script>
+    (function() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.08, rootMargin: '0px 0px -20px 0px' });
+        document.querySelectorAll('.tlo-animate').forEach(el => observer.observe(el));
+    })();
     </script>
 
     @yield('scripts')

@@ -28,9 +28,8 @@
                 <i class="fas fa-chevron-down ms-2"></i>
             </button>
             <ul class="dropdown-menu dropdown-menu-end" id="userDropdownMenu">
-                <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i> Dashboard</a></li>
-                <li><a class="dropdown-item" href="{{ route('admin.user.edit', Auth::id()) }}"><i class="fas fa-user-edit me-2"></i> Profile</a></li>
-                <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i> Settings</a></li>
+                <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i> Bảng điều khiển</a></li>
+                <li><a class="dropdown-item" href="{{ route('admin.user.edit', Auth::id()) }}"><i class="fas fa-user-edit me-2"></i> Hồ sơ cá nhân</a></li>
                 <li>
                     <hr class="dropdown-divider">
                 </li>
@@ -41,7 +40,7 @@
                 <form action="{{ route('logout') }}" method="POST">
                     @csrf
                     <button type="submit" class="dropdown-item">
-                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                        <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
                     </button>
                 </form>
             </ul>
@@ -55,40 +54,45 @@
         top: 0;
         left: 0;
         right: 0;
-        height: 60px;
+        height: 70px;
         z-index: 1030;
-        background-color: white;
-        border-bottom: 1px solid #e0e0e0;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-        padding: 0.5rem 1.5rem;
-        transition: all 0.3s ease;
+        background-color: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+        box-shadow: 0 4px 20px rgba(112, 144, 176, 0.05);
+        padding: 0 1.5rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
     }
 
     .navbar-brand {
-        font-weight: 600;
-        color: #333 !important;
-        font-size: 1.2rem;
+        font-weight: 800;
+        color: #2b3674 !important;
+        font-size: 1.3rem;
         white-space: nowrap;
+        letter-spacing: -0.5px;
     }
 
     .navbar-brand i {
-        color: #555;
+        color: #4facfe;
     }
 
     .btn-toggle {
-        width: 40px;
-        height: 40px;
+        width: 42px;
+        height: 42px;
         display: flex;
         align-items: center;
         justify-content: center;
         background: transparent;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
+        border: none;
+        border-radius: 12px;
         transition: all 0.2s;
+        background-color: #f4f7fe;
     }
 
     .btn-toggle:hover {
-        background: #f5f5f5;
+        background: #e2e8f0;
     }
 
     .toggle-icon {
@@ -101,11 +105,11 @@
     .toggle-bar {
         display: block;
         position: absolute;
-        height: 2px;
+        height: 2.5px;
         width: 100%;
-        background: #333;
-        border-radius: 2px;
-        transition: all 0.25s ease;
+        background: #2b3674;
+        border-radius: 4px;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .toggle-bar:nth-child(1) {
@@ -135,52 +139,73 @@
     }
 
     .search-box {
-        min-width: 150px;
+        min-width: 250px;
     }
 
     .search-input {
-        border: 1px solid #e0e0e0;
-        border-radius: 20px 0 0 20px !important;
-        padding: 0.375rem 1rem;
-        height: 38px;
+        border: 1px solid #e2e8f0;
+        border-radius: 50px 0 0 50px !important;
+        padding: 0.5rem 1.25rem;
+        height: 42px;
+        background-color: #f8fafc;
+        font-size: 0.95rem;
+        box-shadow: none !important;
+    }
+    
+    .search-input:focus {
+        border-color: #4facfe;
+        background-color: #ffffff;
     }
 
     .btn-search {
-        background: #f5f5f5;
-        border: 1px solid #e0e0e0;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
         border-left: none !important;
-        border-radius: 0 20px 20px 0 !important;
-        height: 38px;
-        width: 40px;
+        border-radius: 0 50px 50px 0 !important;
+        height: 42px;
+        width: 45px;
         display: flex;
         align-items: center;
         justify-content: center;
         padding: 0;
+        color: #a0aec0;
     }
 
     .user-dropdown .btn {
-        border: 1px solid #e0e0e0;
-        color: #333;
-        background: transparent;
-        border-radius: 20px;
-        padding: 0.375rem 1rem;
+        border: none;
+        color: #2b3674;
+        background: #f4f7fe;
+        border-radius: 50px;
+        padding: 0.5rem 1.25rem;
         white-space: nowrap;
-        height: 38px;
+        height: 42px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+    
+    .user-dropdown .btn:hover {
+        background: #e2e8f0;
+        transform: translateY(-1px);
     }
 
     .dropdown-menu {
-        border: 1px solid #e0e0e0;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        border: none;
+        box-shadow: 0 10px 40px -10px rgba(112, 144, 176, 0.2);
     }
 
     .dropdown-item {
-        color: #333;
+        color: #64748b;
         transition: all 0.2s;
+        font-weight: 500;
+        padding: 0.6rem 1.25rem;
+        border-radius: 8px;
+        margin: 0.25rem 0.5rem;
+        width: calc(100% - 1rem);
     }
 
     .dropdown-item:hover {
-        background: #f8f9fa;
-        color: #000;
+        background: #f4f7fe;
+        color: #2b3674;
     }
 
     /* Custom dropdown styles */
@@ -193,22 +218,23 @@
         position: absolute;
         top: 100%;
         right: 0;
-        min-width: 200px;
+        min-width: 220px;
         z-index: 1000;
-        margin-top: 0.5rem;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        background: white;
+        margin-top: 1rem;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(10px);
     }
 
     .dropdown-menu.show {
         display: block;
-        animation: fadeInDown 0.2s ease-out;
+        animation: fadeInDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .dropdown-toggle .fa-chevron-down {
-        transition: transform 0.2s ease;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 0.8rem;
     }
 
     .dropdown-toggle.active .fa-chevron-down {
@@ -226,24 +252,9 @@
         }
     }
 
-    .dropdown-item {
-        padding: 0.5rem 1rem;
-        border: none;
-        background: transparent;
-        width: 100%;
-        text-align: left;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .dropdown-item:hover {
-        background: #f8f9fa;
-        color: #000;
-    }
-
     .dropdown-divider {
         margin: 0.5rem 0;
-        border-top: 1px solid #e0e0e0;
+        border-top: 1px solid #e2e8f0;
     }
 
     @media (max-width: 991.98px) {

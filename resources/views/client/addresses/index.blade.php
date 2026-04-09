@@ -1,269 +1,290 @@
 @extends('layouts.app_client')
 
-@section('title', 'Sổ địa chỉ')
+@section('title', 'Sổ Địa Chỉ - TLO Fashion')
 
 @section('content')
-<nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
-        <li class="breadcrumb-item active">Sổ địa chỉ</li>
-    </ol>
-</nav>
-
-<div class="row content">
-    <div class="col-lg-3 col-md-4 mb-4">
-        <div class="user-profile-card">
-            <div class="d-flex align-items-center mb-3">
-                <div class="user-avatar me-3"><i class="fas fa-user"></i></div>
-                <div>
-                    <h6 class="mb-1 fw-bold">{{ Auth::user()->name }}</h6>
-                    <small class="text-muted">{{ Auth::user()->phone }}</small>
-                </div>
-            </div>
-            <a href="{{ route('profile.index') }}" class="text-primary small text-decoration-none">Xem hồ sơ</a>
+<div class="tlo-full-width">
+    <!-- Hero -->
+    <section class="tlo-page-hero">
+        <div class="tlo-page-hero-inner">
+            <div class="tlo-hero-badge"><i class="fas fa-map-marker-alt"></i> Tài khoản</div>
+            <h1 class="tlo-hero-title">Sổ Địa Chỉ</h1>
+            <p class="tlo-hero-desc">Quản lý địa chỉ giao hàng của bạn</p>
         </div>
+    </section>
 
-        <div class="promo-card d-flex">
-            <div class="flex-grow-1 me-3">
-                <p class="small fw-bold mb-2">Quý khách là thành viên tại TLO Fashion</p>
-                <p class="small text-muted mb-3">Quan tâm TLO Shop để kích hoạt điểm thưởng</p>
-            </div>
-            <div class="promo-image"><i class="fas fa-gift"></i></div>
-        </div>
+    <div class="tlo-container" style="padding-top: 32px; padding-bottom: 60px;">
+        <div class="user-page-layout">
+            <!-- Sidebar -->
+            @include('client.partials.user-sidebar')
 
-        <div class="sidebar">
-            <ul class="nav-menu">
-                <li><a href="{{ route('orders.index') }}"><i class="fas fa-box"></i> Đơn hàng của tôi</a></li>
-                <li><a href="{{ route('wishlist.index') }}"><i class="fas fa-heart"></i> Sản phẩm yêu thích</a></li>
-                <li><a href="{{ route('addresses.index') }}" class="active"><i class="fas fa-map-marker-alt"></i> Sổ địa chỉ</a></li>
-                <li><a href="{{ route('discounts.my-discounts') }}"><i class="fas fa-wallet"></i> Mã của tôi</a></li>
-                <li><a href="{{ route('logout') }}" class="text-danger"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
-            </ul>
-        </div>
-    </div>
+            <!-- Main Content -->
+            <div class="user-page-main">
+                <div class="user-page-card">
+                    <div class="addr-header">
+                        <h2 class="addr-title"><i class="fas fa-location-dot"></i> Địa chỉ của tôi</h2>
+                        <a href="{{ route('addresses.create') }}" class="addr-add-btn">
+                            <i class="fas fa-plus"></i> Thêm địa chỉ mới
+                        </a>
+                    </div>
 
-    <div class="col-lg-9 col-md-8">
-        <div class="main-content p-4">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h4 class="mb-0" style="color: #3d3d3d;">Địa chỉ của tôi</h4>
-                <a href="{{ route('addresses.create') }}" class="btn_success">
-                    <i class="fas fa-plus me-2"></i>Thêm địa chỉ mới
-                </a>
-            </div>
-            @if($addresses->count() > 0)
-                <div class="address-list">
-                    @foreach($addresses as $address)
-                        <div class="address-item mb-3">
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div class="flex-grow-1">
-                                            <div class="d-flex align-items-center mb-2">
-                                                <h6 class="fw-bold mb-0 me-3 text-color">{{ $address->receiver_name }}</h6>
+                    @if($addresses->count() > 0)
+                        <div class="addr-list">
+                            @foreach($addresses as $address)
+                                <div class="addr-card {{ $address->is_default ? 'is-default' : '' }}">
+                                    <div class="addr-card-body">
+                                        <div class="addr-info">
+                                            <div class="addr-name-row">
+                                                <span class="addr-name">{{ $address->receiver_name }}</span>
                                                 @if($address->is_default)
-                                                    <span class="badge-bg-success">Mặc định</span>
+                                                    <span class="addr-default-badge"><i class="fas fa-check-circle"></i> Mặc định</span>
                                                 @endif
                                             </div>
-                                            
-                                            <div class="address-details">
-                                                <p class="mb-1">
-                                                    <i class="fas fa-phone me-2 text-muted"></i>
-                                                    {{ $address->receiver_phone }}
-                                                </p>
-                                                <p class="mb-0">
-                                                    <i class="fas fa-map-marker-alt me-2 text-muted"></i>
-                                                    {{ $address->street_address }}, {{ $address->ward_name }}, {{ $address->province_name }}
-                                                </p>
+                                            <div class="addr-detail">
+                                                <span><i class="fas fa-phone"></i> {{ $address->receiver_phone }}</span>
+                                            </div>
+                                            <div class="addr-detail">
+                                                <span><i class="fas fa-map-pin"></i> {{ $address->street_address }}, {{ $address->ward_name }}, {{ $address->province_name }}</span>
                                             </div>
                                         </div>
-                                        
-                                        <div class="address-actions">
-                                            <div class="btn-group" role="group">
-                                                @if(!$address->is_default)
-                                                    <form action="{{ route('addresses.set-default', $address) }}" method="POST" class="d-inline">
-                                                        @csrf
-                                                        <button type="submit" class="btn_info btn" title="Đặt làm mặc định">
-                                                            <i class="fas fa-star"></i>
-                                                        </button>
-                                                    </form>
-                                                @endif
-                                                
-                                                <a href="{{ route('addresses.edit', $address) }}" class="btn_warning btn" title="Chỉnh sửa">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                
-                                                @if(!$address->isUsedInOrders())
-                                                    <form action="{{ route('addresses.destroy', $address) }}" method="POST" class="d-inline delete-address-form">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="btn_danger btn" title="Xóa" onclick="return confirm('Bạn có chắc chắn muốn xóa địa chỉ này?')">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
-                                                    </form>
-                                                @endif
-                                            </div>
+                                        <div class="addr-actions">
+                                            @if(!$address->is_default)
+                                                <form action="{{ route('addresses.set-default', $address) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    <button type="submit" class="addr-action-btn default" title="Đặt làm mặc định">
+                                                        <i class="fas fa-star"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                            <a href="{{ route('addresses.edit', $address) }}" class="addr-action-btn edit" title="Chỉnh sửa">
+                                                <i class="fas fa-pen"></i>
+                                            </a>
+                                            @if(!$address->isUsedInOrders())
+                                                <form action="{{ route('addresses.destroy', $address) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="addr-action-btn delete" title="Xóa" onclick="return confirm('Bạn có chắc chắn muốn xóa địa chỉ này?')">
+                                                        <i class="fas fa-trash-can"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            @endforeach
                         </div>
-                    @endforeach
+                    @else
+                        <div class="addr-empty">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <h3>Chưa có địa chỉ nào</h3>
+                            <p>Thêm địa chỉ giao hàng để thuận tiện khi đặt hàng</p>
+                            <a href="{{ route('addresses.create') }}" class="addr-add-btn">
+                                <i class="fas fa-plus"></i> Thêm địa chỉ đầu tiên
+                            </a>
+                        </div>
+                    @endif
                 </div>
-            @else
-                <div class="text-center py-5">
-                    <div class="empty-state">
-                        <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
-                        <h6 class="text-muted mb-2">Chưa có địa chỉ nào</h6>
-                        <p class="text-muted mb-4">Thêm địa chỉ giao hàng để thuận tiện khi đặt hàng</p>
-                        <a href="{{ route('addresses.create') }}" class="btn btn-danger">
-                            <i class="fas fa-plus me-2"></i>Thêm địa chỉ đầu tiên
-                        </a>
-                    </div>
-                </div>
-            @endif
+            </div>
         </div>
     </div>
 </div>
-@endsection
 
-@section('scripts')
 <style>
-    body {
-        background-color: #f8f9fa;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    .content {
-        border-radius: 10px;
-        padding: 10px 0;
-    }
-    .sidebar, .main-content {
-        background-color: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .user-profile-card, .promo-card {
-        background-color: #fff5f5;
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 20px;
-    }
-    .user-avatar {
+    /* Header */
+    .addr-header {
         display: flex;
+        justify-content: space-between;
         align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        color: white;
-        width: 50px;
-        height: 50px;
-        background-color: #ff6b35;
-        font-size: 20px;
+        margin-bottom: 28px;
+        flex-wrap: wrap;
+        gap: 12px;
     }
-    .btn-edit, .btn-promo {
-        background-color: #dc3545;
-        border-color: #dc3545;
-    }
-    .btn-promo {
-        font-size: 12px;
-        padding: 6px 12px;
-    }
-    .btn_success {
-        background: linear-gradient(135deg, #00d4aa 0%, #00b894 100%);
-        border: none;
-        color: #ffffff;
-        font-weight: 600;
-        border-radius: 0;
-        padding: 8px 12px;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 8px rgba(0, 212, 170, 0.3);
-        text-decoration: none;
-    }
-    .btn_success:hover {
-        background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px #00d4aa;
-    }
-
-    .btn_info .btn_warning .btn_danger{
-        border: none;
-        color: #ffffff;
-        font-weight: 600;
-        border-radius: 0;
-        padding: 4px 8px;
-    }
-    .nav-menu {
-        list-style: none;
-        padding: 0;
+    .addr-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--tlo-text-primary);
         margin: 0;
     }
-    .nav-menu li {
-        border-bottom: 1px solid #f0f0f0;
+    .addr-title i {
+        color: var(--tlo-accent);
+        margin-right: 8px;
     }
-    .nav-menu li:last-child {
-        border-bottom: none;
+    .addr-add-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
+        border: none;
+        cursor: pointer;
     }
-    .nav-menu a {
+    .addr-add-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 107, 107, 0.35);
+        color: #fff;
+    }
+
+    /* Address List */
+    .addr-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    /* Address Card */
+    .addr-card {
+        background: var(--tlo-surface, #fff);
+        border: 1px solid var(--tlo-border, #e2e8f0);
+        border-radius: 14px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    .addr-card:hover {
+        box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        transform: translateY(-2px);
+    }
+    .addr-card.is-default {
+        border-color: rgba(255, 107, 107, 0.3);
+        background: linear-gradient(135deg, rgba(255, 107, 107, 0.03), rgba(238, 90, 36, 0.02));
+    }
+
+    .addr-card-body {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 20px 24px;
+        gap: 16px;
+    }
+
+    .addr-info {
+        flex: 1;
+        min-width: 0;
+    }
+    .addr-name-row {
         display: flex;
         align-items: center;
-        padding: 15px 20px;
-        text-decoration: none;
-        color: #333;
-        transition: 0.3s;
+        gap: 10px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
     }
-    .nav-menu a:hover, .nav-menu a.active {
-        background-color: #f8f9fa;
-        border-left: 3px solid #ff6b35;
+    .addr-name {
+        font-weight: 700;
+        font-size: 1rem;
+        color: var(--tlo-text-primary, #1e293b);
     }
-    .nav-menu i {
-        margin-right: 12px;
-        width: 20px;
-        color: #666;
+    .addr-default-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: #10b981;
+        background: rgba(16, 185, 129, 0.1);
+        padding: 3px 10px;
+        border-radius: 20px;
     }
-    .breadcrumb-item a {
-        color: #007bff;
-        text-decoration: none;
+    .addr-detail {
+        font-size: 0.88rem;
+        color: var(--tlo-text-secondary, #64748b);
+        margin-bottom: 6px;
+        line-height: 1.5;
     }
-    .promo-image {
-        width: 50px;
-        height: 60px;
-        background: linear-gradient(45deg, #ff6b35, #ffa500);
-        border-radius: 8px;
+    .addr-detail i {
+        width: 18px;
+        color: var(--tlo-text-muted, #94a3b8);
+        margin-right: 6px;
+        font-size: 0.8rem;
+    }
+
+    /* Actions */
+    .addr-actions {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+    .addr-action-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: 1px solid var(--tlo-border, #e2e8f0);
+        background: var(--tlo-surface, #fff);
         display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
-        font-size: 20px;
-    }
-    
-    .address-item .card {
+        cursor: pointer;
         transition: all 0.3s ease;
+        font-size: 0.8rem;
+        text-decoration: none;
     }
-    .address-item .card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+    .addr-action-btn.default {
+        color: #f59e0b;
     }
-    .address-details p {
-        font-size: 14px;
-        color: #666;
+    .addr-action-btn.default:hover {
+        background: #fffbeb;
+        border-color: #f59e0b;
     }
-    .address-actions .btn-group .btn {
-        border-radius: 0;
-        margin-right: 5px;
-        padding: 3px 6px;
+    .addr-action-btn.edit {
+        color: #3b82f6;
     }
-    .empty-state {
-        color: #6c757d;
+    .addr-action-btn.edit:hover {
+        background: #eff6ff;
+        border-color: #3b82f6;
     }
-    .badge-bg-success{
-        font-size: 11px;
-        color: #009476;
-        border: 1px solid #009476;
-        padding: 2px 8px;
+    .addr-action-btn.delete {
+        color: #ef4444;
     }
-
-    .text-color{
-        color: #e33505;
+    .addr-action-btn.delete:hover {
+        background: #fef2f2;
+        border-color: #ef4444;
     }
 
+    /* Empty */
+    .addr-empty {
+        text-align: center;
+        padding: 60px 20px;
+    }
+    .addr-empty i {
+        font-size: 3rem;
+        color: var(--tlo-border, #e2e8f0);
+        margin-bottom: 16px;
+        display: block;
+    }
+    .addr-empty h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.2rem;
+        color: var(--tlo-text-primary, #1e293b);
+        margin-bottom: 8px;
+    }
+    .addr-empty p {
+        color: var(--tlo-text-secondary, #94a3b8);
+        margin-bottom: 20px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .addr-card-body {
+            flex-direction: column;
+            padding: 16px;
+        }
+        .addr-actions {
+            width: 100%;
+            justify-content: flex-end;
+            padding-top: 12px;
+            border-top: 1px solid var(--tlo-border, #e2e8f0);
+        }
+        .addr-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
 </style>
 
 <script>

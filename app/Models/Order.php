@@ -22,9 +22,12 @@ class Order extends Model
         'shipping_phone',
         'shipping_name',
         'notes',
+        'return_reason',
         'paid_at',
         'shipped_at',
-        'delivered_at'
+        'delivered_at',
+        'return_requested_at',
+        'returned_at'
     ];
 
     protected $casts = [
@@ -36,16 +39,23 @@ class Order extends Model
         'paid_at' => 'datetime',
         'shipped_at' => 'datetime',
         'delivered_at' => 'datetime',
+        'return_requested_at' => 'datetime',
+        'returned_at' => 'datetime',
     ];
+
+    // Số ngày cho phép yêu cầu trả hàng kể từ khi nhận
+    const RETURN_DAYS_LIMIT = 7;
 
     // Định nghĩa luồng trạng thái đơn hàng
     const STATUS_FLOW = [
         'pending' => ['confirmed', 'cancelled'],
         'confirmed' => ['processing', 'cancelled'],
         'processing' => ['shipped', 'cancelled'],
-        'shipped' => ['delivered', 'cancelled'],
-        'delivered' => [], // Không thể thay đổi từ delivered
-        'cancelled' => [], // Không thể thay đổi từ cancelled
+        'shipped' => ['delivered'],           // Chỉ khách hàng xác nhận nhận hàng, không cho hủy khi đang giao
+        'delivered' => ['return_requested'],   // Khách có thể yêu cầu trả hàng
+        'return_requested' => ['returned', 'delivered'], // Admin duyệt trả hoặc từ chối (quay lại delivered)
+        'returned' => [],                      // Đã trả hàng - trạng thái cuối
+        'cancelled' => [],                     // Đã hủy - trạng thái cuối
     ];
 
     // Định nghĩa thứ tự ưu tiên trạng thái
@@ -55,7 +65,9 @@ class Order extends Model
         'processing' => 3,
         'shipped' => 4,
         'delivered' => 5,
-        'cancelled' => 0, // Đặc biệt, có thể áp dụng ở bất kỳ giai đoạn nào
+        'return_requested' => 6,
+        'returned' => 7,
+        'cancelled' => 0,
     ];
 
     // Boot method để tự động tạo order_number
@@ -95,10 +107,58 @@ class Order extends Model
         return $this->hasMany(Review::class);
     }
 
-    // Helper methods
+    // ===== Helper methods =====
+
+    /**
+     * Kiểm tra khách hàng có thể hủy đơn hàng không
+     * Cho phép hủy ở pending và confirmed
+     */
     public function canBeCancelled()
     {
-        return in_array($this->status, ['pending', 'confirmed', 'processing', 'shipped']);
+        return in_array($this->status, ['pending', 'confirmed']);
+    }
+
+    /**
+     * Kiểm tra khách hàng có thể xác nhận đã nhận hàng không
+     * Chỉ khi đơn hàng đang ở trạng thái shipped (đang giao)
+     */
+    public function canConfirmReceived()
+    {
+        return $this->status === 'shipped';
+    }
+
+    /**
+     * Kiểm tra khách hàng có thể yêu cầu trả hàng không
+     * Điều kiện: đã giao + trong thời hạn trả hàng
+     */
+    public function canRequestReturn()
+    {
+        if ($this->status !== 'delivered') {
+            return false;
+        }
+
+        // Kiểm tra thời hạn trả hàng (7 ngày kể từ khi giao)
+        $deliveredDate = $this->delivered_at ?? $this->updated_at;
+        if ($deliveredDate && $deliveredDate->diffInDays(now()) > self::RETURN_DAYS_LIMIT) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Lấy số ngày còn lại để yêu cầu trả hàng
+     */
+    public function getReturnDaysRemaining()
+    {
+        if ($this->status !== 'delivered') {
+            return 0;
+        }
+
+        $deliveredDate = $this->delivered_at ?? $this->updated_at;
+        $daysElapsed = $deliveredDate->diffInDays(now());
+        $remaining = self::RETURN_DAYS_LIMIT - $daysElapsed;
+        return max(0, $remaining);
     }
 
     public function canBeShipped()
@@ -205,6 +265,8 @@ class Order extends Model
             'processing' => 'Đang xử lý',
             'shipped' => 'Đã gửi hàng',
             'delivered' => 'Đã giao hàng',
+            'return_requested' => 'Yêu cầu trả hàng',
+            'returned' => 'Đã trả hàng',
             'cancelled' => 'Đã hủy'
         ];
 
@@ -220,7 +282,7 @@ class Order extends Model
             'pending' => 'Chờ thanh toán',
             'paid' => 'Đã thanh toán',
             'failed' => 'Thanh toán thất bại',
-            'refund_pending' => 'Chờ hoàn tiền', // Thêm mới
+            'refund_pending' => 'Chờ hoàn tiền',
             'refunded' => 'Đã hoàn tiền'
         ];
         return $paymentStatusTexts[$this->payment_status] ?? $this->payment_status;
@@ -237,6 +299,8 @@ class Order extends Model
             'processing' => 'bg-primary text-white',
             'shipped' => 'bg-info text-white',
             'delivered' => 'bg-success text-white',
+            'return_requested' => 'bg-warning text-dark',
+            'returned' => 'bg-secondary text-white',
             'cancelled' => 'bg-danger text-white'
         ];
 
@@ -252,7 +316,7 @@ class Order extends Model
             'pending' => 'bg-warning text-dark',
             'paid' => 'bg-success text-white',
             'failed' => 'bg-danger text-white',
-            'refund_pending' => 'bg-info text-dark', // Thêm mới
+            'refund_pending' => 'bg-info text-dark',
             'refunded' => 'bg-info text-white'
         ];
         return $badgeClasses[$this->payment_status] ?? 'bg-secondary text-white';
@@ -287,28 +351,21 @@ class Order extends Model
      */
     public function canContinueVnPayPayment()
     {
-        // Kiểm tra đơn hàng có phải VNPay không
         if ($this->payment_method !== 'vnpay') {
             return false;
         }
-
-        // Kiểm tra trạng thái thanh toán phải là pending
         if ($this->payment_status !== 'pending') {
             return false;
         }
-
-        // Kiểm tra trạng thái đơn hàng phải là pending
         if ($this->status !== 'pending') {
             return false;
         }
 
-        // Tìm payment VNPay gần nhất
         $payment = $this->getLatestVnPayPayment();
         if (!$payment) {
             return false;
         }
 
-        // Kiểm tra payment có thể thanh toán không
         return $payment->canBePaid();
     }
 
@@ -343,10 +400,22 @@ class Order extends Model
 
     /**
      * Kiểm tra xem đơn hàng có thể đánh giá sản phẩm không
+     * FIX: Cho phép đánh giá đơn COD đã giao mà chưa cập nhật thanh toán
      */
     public function canReviewProducts()
     {
-        return $this->status === 'delivered' && $this->payment_status === 'paid';
+        // Đơn hàng phải ở trạng thái delivered
+        if ($this->status !== 'delivered') {
+            return false;
+        }
+
+        // COD: cho phép đánh giá khi đã giao, bất kể trạng thái thanh toán
+        if ($this->payment_method === 'cod') {
+            return true;
+        }
+
+        // Các phương thức khác: phải thanh toán rồi mới được đánh giá
+        return $this->payment_status === 'paid';
     }
 
     /**
@@ -358,7 +427,6 @@ class Order extends Model
             return false;
         }
 
-        // Kiểm tra xem đơn hàng có chứa sản phẩm này không
         return $this->items()->where('product_id', $productId)->exists();
     }
 }

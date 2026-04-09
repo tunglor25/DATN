@@ -346,6 +346,47 @@
                             </form>
                         </div>
                     @endif
+
+                    <!-- Xử lý yêu cầu trả hàng -->
+                    @if($order->status === 'return_requested')
+                        <div class="mb-3 p-3 border rounded" style="background: #fff3cd;">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-undo text-warning me-2"></i>
+                                <span class="fw-medium small">Yêu cầu trả hàng</span>
+                            </div>
+                            @if($order->return_reason)
+                                <p class="small mb-2">
+                                    <strong>Lý do:</strong> {{ $order->return_reason }}
+                                </p>
+                            @endif
+                            @if($order->return_requested_at)
+                                <p class="text-muted small mb-3">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Yêu cầu lúc: {{ $order->return_requested_at->format('d/m/Y H:i') }}
+                                </p>
+                            @endif
+                            <div class="d-flex gap-2">
+                                <form action="{{ route('admin.orders.approveReturn', $order) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Bạn có chắc chắn muốn DUYỆT yêu cầu trả hàng? Tồn kho sẽ được cộng lại.')">
+                                        <i class="fas fa-check me-1"></i>Duyệt trả hàng
+                                    </button>
+                                </form>
+                                <form action="{{ route('admin.orders.rejectReturn', $order) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    <input type="hidden" name="reject_reason" value="">
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="
+                                        var reason = prompt('Nhập lý do từ chối (tùy chọn):');
+                                        if (reason === null) return false;
+                                        this.form.querySelector('input[name=reject_reason]').value = reason;
+                                        return confirm('Bạn có chắc chắn muốn TỪ CHỐI yêu cầu trả hàng?');
+                                    ">
+                                        <i class="fas fa-times me-1"></i>Từ chối
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    @endif
                     
                     @php
                         $availableStatuses = $order->getAvailableStatuses();
@@ -373,7 +414,7 @@
                                     @endforeach
                                 </select>
                                 <small class="form-text text-muted">
-                                    Luồng trạng thái: Chờ xác nhận → Đã xác nhận → Đang xử lý → Đã gửi hàng → Đã giao hàng
+                                    Luồng trạng thái: Chờ xác nhận → Đã xác nhận → Đang xử lý → Đã gửi hàng → Đã giao hàng (→ Yêu cầu trả hàng → Đã trả hàng)
                                 </small>
                             </div>
                             <button type="submit" class="btn btn-primary btn-sm w-100">
@@ -414,7 +455,7 @@
                             </div>
                         </div>
                         
-                        @if(in_array($order->status, ['confirmed', 'processing', 'shipped', 'delivered']))
+                        @if(in_array($order->status, ['confirmed', 'processing', 'shipped', 'delivered', 'return_requested', 'returned']))
                         <div class="timeline-item">
                             <div class="timeline-marker bg-success"></div>
                             <div class="timeline-content">
@@ -424,7 +465,7 @@
                         </div>
                         @endif
                         
-                        @if(in_array($order->status, ['processing', 'shipped', 'delivered']))
+                        @if(in_array($order->status, ['processing', 'shipped', 'delivered', 'return_requested', 'returned']))
                         <div class="timeline-item">
                             <div class="timeline-marker bg-info"></div>
                             <div class="timeline-content">
@@ -434,7 +475,7 @@
                         </div>
                         @endif
                         
-                        @if(in_array($order->status, ['shipped', 'delivered']))
+                        @if(in_array($order->status, ['shipped', 'delivered', 'return_requested', 'returned']))
                         <div class="timeline-item">
                             <div class="timeline-marker bg-warning"></div>
                             <div class="timeline-content">
@@ -444,12 +485,35 @@
                         </div>
                         @endif
                         
-                        @if($order->status == 'delivered')
+                        @if(in_array($order->status, ['delivered', 'return_requested', 'returned']))
                         <div class="timeline-item">
                             <div class="timeline-marker bg-success"></div>
                             <div class="timeline-content">
                                 <div class="fw-medium small">Đã giao hàng</div>
                                 <small class="text-muted">{{ $order->delivered_at ? $order->delivered_at->format('d/m/Y H:i') : $order->updated_at->format('d/m/Y H:i') }}</small>
+                            </div>
+                        </div>
+                        @endif
+
+                        @if(in_array($order->status, ['return_requested', 'returned']))
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-warning"></div>
+                            <div class="timeline-content">
+                                <div class="fw-medium small">Yêu cầu trả hàng</div>
+                                <small class="text-muted">{{ $order->return_requested_at ? $order->return_requested_at->format('d/m/Y H:i') : $order->updated_at->format('d/m/Y H:i') }}</small>
+                                @if($order->return_reason)
+                                    <br><small class="text-muted">Lý do: {{ $order->return_reason }}</small>
+                                @endif
+                            </div>
+                        </div>
+                        @endif
+
+                        @if($order->status == 'returned')
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-secondary"></div>
+                            <div class="timeline-content">
+                                <div class="fw-medium small">Đã trả hàng</div>
+                                <small class="text-muted">{{ $order->returned_at ? $order->returned_at->format('d/m/Y H:i') : $order->updated_at->format('d/m/Y H:i') }}</small>
                             </div>
                         </div>
                         @endif
@@ -472,181 +536,6 @@
 @endsection
 
 @push('styles')
-<style>
-/* Clean Design */
-body {
-    background-color: #f8f9fa;
-}
-
-.card {
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    border: none;
-}
-
-.card-header {
-    background: transparent;
-    border-bottom: 1px solid #e9ecef;
-}
-
-.table {
-    font-size: 0.875rem;
-}
-
-.table th {
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-size: 0.75rem;
-    color: #6c757d;
-}
-
-.table td {
-    vertical-align: middle;
-    border-top: 1px solid #f1f3f4;
-}
-
-.badge {
-    font-size: 0.75rem;
-    font-weight: 500;
-    padding: 0.5rem 0.75rem;
-    border-radius: 6px;
-}
-
-.form-control, .form-select {
-    border-radius: 8px;
-    border: 1px solid #e1e5e9;
-    font-size: 0.875rem;
-    padding: 0.5rem 0.75rem;
-}
-
-.form-control:focus, .form-select:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
-}
-
-.btn {
-    border-radius: 8px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    padding: 0.5rem 1rem;
-}
-
-.btn-sm {
-    padding: 0.375rem 0.75rem;
-    font-size: 0.8rem;
-}
-
-/* Timeline */
-.timeline {
-    position: relative;
-    padding-left: 24px;
-}
-
-.timeline::before {
-    content: '';
-    position: absolute;
-    left: 12px;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: #e9ecef;
-}
-
-.timeline-item {
-    position: relative;
-    margin-bottom: 16px;
-}
-
-.timeline-marker {
-    position: absolute;
-    left: -18px;
-    top: 2px;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    border: 2px solid white;
-    box-shadow: 0 0 0 2px #e9ecef;
-}
-
-.timeline-content {
-    padding-left: 8px;
-}
-
-.timeline-content .fw-medium {
-    font-size: 0.875rem;
-    margin-bottom: 2px;
-}
-
-.timeline-content small {
-    font-size: 0.75rem;
-}
-
-/* Hover effects */
-.table tbody tr:hover {
-    background-color: #f8f9fa;
-}
-
-.card:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    transform: translateY(-1px);
-    transition: all 0.2s ease;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .container-fluid {
-        padding: 1rem;
-    }
-    
-    .table-responsive {
-        font-size: 0.8rem;
-    }
-    
-    .card-body {
-        padding: 1rem;
-    }
-}
-
-/* Print styles */
-@media print {
-    .btn, .form-control, .form-select {
-        display: none !important;
-    }
-    
-    .card {
-        box-shadow: none !important;
-        border: 1px solid #dee2e6 !important;
-    }
-}
-
-/* Tooltip styles */
-.tooltip {
-    font-size: 0.875rem;
-}
-
-/* Lock icon styles */
-.fa-lock {
-    color: #6c757d;
-}
-
-/* Info icon styles */
-.fa-info-circle {
-    cursor: help;
-}
-
-/* Form control readonly styles */
-.form-control[readonly] {
-    background-color: #f8f9fa;
-    border-color: #e9ecef;
-    cursor: not-allowed;
-}
-
-/* Badge in form control */
-.form-control .badge {
-    font-size: 0.75rem;
-    }
-</style>
 @endpush
 
 @push('scripts')

@@ -1,18 +1,23 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container mt-4">
+<div class="container-fluid">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h4 class="mb-1">
-                <i class="fas fa-plus-circle text-primary me-2"></i>
-                Thêm mới sản phẩm
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1" style="font-size: 0.8rem;">
+                    <li class="breadcrumb-item"><a href="{{ route('admin.products.index') }}" class="text-decoration-none" style="color: #667eea;">Sản phẩm</a></li>
+                    <li class="breadcrumb-item active">Thêm mới</li>
+                </ol>
+            </nav>
+            <h4 class="fw-bold mb-0" style="color: #1a202c;">
+                <i class="fas fa-plus-circle me-2" style="color: #667eea;"></i>Thêm mới sản phẩm
             </h4>
-            <p class="text-muted mb-0">Tạo sản phẩm mới với các biến thể</p>
+            <p class="text-muted small mb-0 mt-1">Tạo sản phẩm mới với các biến thể</p>
         </div>
-        <a href="{{ route('admin.products.index') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-1"></i> Quay lại danh sách
+        <a href="{{ route('admin.products.index') }}" class="btn btn-outline-secondary px-3">
+            <i class="fas fa-arrow-left me-1"></i> Quay lại
         </a>
     </div>
 
@@ -256,8 +261,8 @@
         <div id="variants-wrapper" class="mt-3"></div>
 
         <!-- Submit -->
-        <div class="text-center">
-            <button type="submit" class="btn btn-primary btn-lg px-5" onclick="return validateForm()">
+        <div class="text-center mt-4 mb-3">
+            <button type="submit" class="btn btn-primary btn-lg px-5" onclick="return validateForm()" style="border-radius: 12px; padding: 12px 40px;">
                 <i class="fas fa-save me-2"></i> Lưu sản phẩm
             </button>
         </div>

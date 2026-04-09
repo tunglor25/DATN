@@ -1,7 +1,7 @@
 @extends('layouts.app_client')
 <link rel="stylesheet" href="{{ asset('build/css/style_home.css') }}">
 @section('content')
-    <div class="container">
+    <div class="tlo-full-width home-page-content">
         <div class="d-flex justify-content-center mb-5">
             <div class="top-banners-container">
                 <div class="top-banners-wrapper">

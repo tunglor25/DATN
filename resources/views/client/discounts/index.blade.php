@@ -1,32 +1,19 @@
 @extends('layouts.app_client')
 
+@section('title', 'Mã Giảm Giá - TLO Fashion')
+
 @section('content')
-<div class="container py-4">
-    <!-- Hiển thị thông báo -->
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert" id="success-alert">
-            <i class="fas fa-check-circle me-2"></i>
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+<div class="tlo-full-width">
+    <!-- Hero -->
+    <section class="tlo-page-hero">
+        <div class="tlo-page-hero-inner">
+            <div class="tlo-hero-badge"><i class="fas fa-tags"></i> Ưu đãi</div>
+            <h1 class="tlo-hero-title">Mã Giảm Giá</h1>
+            <p class="tlo-hero-desc">Nhận mã giảm giá để tiết kiệm hơn khi mua sắm</p>
         </div>
-    @endif
+    </section>
 
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert" id="error-alert">
-            <i class="fas fa-exclamation-circle me-2"></i>
-            {{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
-    <div class="row">
-        <div class="col-12">
-            <h2 class="mb-4">
-                <i class="fas fa-tags text-danger me-2"></i>
-                Mã Giảm Giá
-            </h2>
-        </div>
-    </div>
+<div class="tlo-container" style="padding-top: 32px; padding-bottom: 60px;">
 
     <div class="row">
         <!-- Cột trái: Danh sách mã giảm giá -->
@@ -149,6 +136,7 @@
         </div>
     </div>
 </div>
+</div>
 
 <style>
     .coupon-list {
@@ -161,13 +149,14 @@
     .coupon {
         width: 100%;
         height: 100px;
-        background: white;
-        border-radius: 8px;
+        background: var(--tlo-surface);
+        border-radius: var(--tlo-radius-md);
         display: flex;
         overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--tlo-shadow-sm);
+        border: 1px solid var(--tlo-border);
         position: relative;
-        transition: opacity 0.3s ease;
+        transition: var(--tlo-transition);
     }
 
     .coupon.saved {
@@ -180,7 +169,7 @@
 
     .coupon-left {
         width: 120px;
-        background: linear-gradient(135deg, #000000, #000000);
+        background: linear-gradient(135deg, #1a1a2e, #0f0f0f);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -239,13 +228,13 @@
     .discount-title {
         font-size: 16px;
         font-weight: bold;
-        color: #333;
+        color: var(--tlo-text-primary);
         margin-bottom: 4px;
     }
 
     .discount-condition {
         font-size: 12px;
-        color: #666;
+        color: var(--tlo-text-secondary);
         margin-bottom: 8px;
     }
 
@@ -266,11 +255,11 @@
         right: 15px;
         top: 50%;
         transform: translateY(-50%);
-        background: #000000;
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
         color: white;
         border: none;
         padding: 8px 16px;
-        border-radius: 4px;
+        border-radius: 10px;
         font-size: 12px;
         font-weight: bold;
         cursor: pointer;
@@ -280,10 +269,12 @@
         justify-content: center;
         min-width: 50px;
         text-decoration: none;
+        box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
     }
 
     .save-button:hover {
-        background: #00000093;
+        transform: translateY(-50%) translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 107, 107, 0.35);
         color: white;
         text-decoration: none;
     }

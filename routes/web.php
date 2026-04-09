@@ -113,6 +113,8 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
         Route::put('/{order}/status', [OrderController::class, 'updateStatus'])->name('updateStatus');
         Route::put('/{order}/payment-status', [OrderController::class, 'updatePaymentStatus'])->name('updatePaymentStatus');
         Route::post('/{order}/refund', [OrderController::class, 'refund'])->name('refund');
+        Route::post('/{order}/approve-return', [OrderController::class, 'approveReturn'])->name('approveReturn');
+        Route::post('/{order}/reject-return', [OrderController::class, 'rejectReturn'])->name('rejectReturn');
     });
 
     //Discount

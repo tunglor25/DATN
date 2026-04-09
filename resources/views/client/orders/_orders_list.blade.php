@@ -40,6 +40,12 @@
                 @elseif ($status === 'delivered')
                     <i class="fas fa-check-circle fa-3x text-muted mb-3"></i>
                     <p class="text-muted">Không có đơn hàng đã giao</p>
+                @elseif ($status === 'return_requested')
+                    <i class="fas fa-undo fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Không có đơn hàng yêu cầu trả</p>
+                @elseif ($status === 'returned')
+                    <i class="fas fa-exchange-alt fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Không có đơn hàng đã trả</p>
                 @elseif ($status === 'cancelled')
                     <i class="fas fa-times-circle fa-3x text-muted mb-3"></i>
                     <p class="text-muted">Không có đơn hàng đã hủy</p>

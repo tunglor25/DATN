@@ -105,7 +105,7 @@
                             </div>
                             
                             <!-- Nút đánh giá cho đơn hàng đã giao -->
-                            @if(in_array($order->status, ['delivered']) && ($item->product_id || ($item->variant && $item->variant->product_id)))
+                            @if($order->canReviewProducts() && ($item->product_id || ($item->variant && $item->variant->product_id)))
                                 <div class="row mt-2">
                                     <div class="col-12 text-end">
                                         @php
@@ -282,16 +282,59 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
+                        {{-- Nút xác nhận đã nhận hàng --}}
+                        @if($order->canConfirmReceived())
+                            <form action="{{ route('orders.confirm-received', $order->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-success w-100" 
+                                        onclick="return confirm('Bạn xác nhận đã nhận được hàng?')">
+                                    <i class="fas fa-check-circle me-1"></i>
+                                    Xác nhận đã nhận hàng
+                                </button>
+                            </form>
+                        @endif
+
+                        {{-- Nút yêu cầu trả hàng --}}
+                        @if($order->canRequestReturn())
+                            <button class="btn btn-warning w-100" data-bs-toggle="modal" data-bs-target="#returnModalDetail">
+                                <i class="fas fa-undo me-1"></i>
+                                Trả hàng/Hoàn tiền (còn {{ $order->getReturnDaysRemaining() }} ngày)
+                            </button>
+                        @endif
+
+                        {{-- Thông tin trả hàng --}}
+                        @if($order->status === 'return_requested')
+                            <div class="alert alert-warning mb-0">
+                                <i class="fas fa-clock me-1"></i>
+                                <strong>Đang chờ xét duyệt trả hàng</strong>
+                                @if($order->return_reason)
+                                    <br><small class="text-muted">Lý do: {{ $order->return_reason }}</small>
+                                @endif
+                            </div>
+                        @endif
+
+                        @if($order->status === 'returned')
+                            <div class="alert alert-info mb-0">
+                                <i class="fas fa-check-double me-1"></i>
+                                <strong>Đơn hàng đã được trả</strong>
+                                @if($order->returned_at)
+                                    <br><small class="text-muted">Ngày trả: {{ $order->returned_at->format('d/m/Y H:i') }}</small>
+                                @endif
+                            </div>
+                        @endif
+
                         <!-- Form ẩn cho MUA LẦN NỮA -->
                         <form class="buy-again-order-form" action="{{ route('orders.buy-again', $order->id) }}" method="POST" style="display:none;">
                             @csrf
                         </form>
-                        <button class="btn btn_info buy-again" data-order-id="{{ $order->id }}">
-                            <i class="fas fa-shopping-cart me-1"></i>
-                            Mua lại đơn hàng
-                        </button>
+                        @if(in_array($order->status, ['delivered', 'cancelled', 'returned']))
+                            <button class="btn btn_info buy-again" data-order-id="{{ $order->id }}">
+                                <i class="fas fa-shopping-cart me-1"></i>
+                                Mua lại đơn hàng
+                            </button>
+                        @endif
                         
-                        @if($order->status === 'pending')
+                        @if($order->canBeCancelled())
                             <form action="{{ route('orders.cancel', $order->id) }}" method="POST">
                                 @csrf
                                 <button type="submit" class="btn btn_danger w-100 cancel-order">
@@ -308,6 +351,48 @@
                     </div>
                 </div>
             </div>
+
+            {{-- Modal yêu cầu trả hàng --}}
+            @if($order->canRequestReturn())
+            <div class="modal fade" id="returnModalDetail" tabindex="-1" aria-labelledby="returnModalDetailLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form action="{{ route('orders.request-return', $order->id) }}" method="POST">
+                            @csrf
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="returnModalDetailLabel">
+                                    <i class="fas fa-undo me-2"></i>Yêu cầu trả hàng/hoàn tiền
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Đơn hàng <strong>#{{ $order->order_number }}</strong>
+                                    <br>Bạn còn <strong>{{ $order->getReturnDaysRemaining() }} ngày</strong> để yêu cầu trả hàng.
+                                </div>
+                                <div class="mb-3">
+                                    <label for="return_reason_detail" class="form-label fw-bold">
+                                        Lý do trả hàng <span class="text-danger">*</span>
+                                    </label>
+                                    <textarea class="form-control" id="return_reason_detail" 
+                                              name="return_reason" rows="4" 
+                                              placeholder="Vui lòng mô tả chi tiết lý do bạn muốn trả hàng (ít nhất 10 ký tự)..." 
+                                              required minlength="10" maxlength="1000"></textarea>
+                                    <div class="form-text">Ví dụ: Sản phẩm bị lỗi, sai màu, sai size, không đúng mô tả...</div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="fas fa-paper-plane me-1"></i>Gửi yêu cầu trả hàng
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 </div>

@@ -15,21 +15,24 @@ return new class extends Migration
             $table->id();
             $table->string('order_number')->unique(); // Mã đơn hàng
             $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Bắt buộc có user
-            $table->enum('status', ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'])->default('pending');
+            $table->enum('status', ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'return_requested', 'returned', 'cancelled'])->default('pending');
             $table->decimal('subtotal', 12, 2); // Tổng tiền hàng (chưa có discount)
             $table->decimal('tax_amount', 12, 2)->default(0); // Thuế
             $table->decimal('shipping_fee', 12, 2)->default(0); // Phí vận chuyển
             $table->decimal('discount_amount', 12, 2)->default(0); // Giảm giá
             $table->decimal('total_amount', 12, 2); // Tổng cộng
             $table->enum('payment_method', ['cod', 'bank_transfer', 'credit_card', 'momo', 'vnpay'])->nullable();
-            $table->enum('payment_status', ['pending', 'paid', 'failed', 'refunded'])->default('pending');
+            $table->enum('payment_status', ['pending', 'paid', 'failed', 'refund_pending', 'refunded'])->default('pending');
             $table->text('shipping_address'); // Địa chỉ giao hàng
             $table->string('shipping_phone', 20);
             $table->string('shipping_name', 100); // Tên người nhận
             $table->text('notes')->nullable(); // Ghi chú
+            $table->text('return_reason')->nullable(); // Lý do trả hàng
             $table->timestamp('paid_at')->nullable();
             $table->timestamp('shipped_at')->nullable();
             $table->timestamp('delivered_at')->nullable();
+            $table->timestamp('return_requested_at')->nullable(); // Ngày yêu cầu trả hàng
+            $table->timestamp('returned_at')->nullable(); // Ngày hoàn trả hàng
             $table->timestamps();
 
             // Indexes cho hiệu suất

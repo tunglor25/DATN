@@ -1,306 +1,149 @@
 @extends('layouts.app_client')
 
-@section('content')
-<div class="container">
-    <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Trang chủ</a></li>
-            <li class="breadcrumb-item active" aria-current="page">đơn hàng</li>
-        </ol>
-    </nav>
+@section('title', 'Đơn hàng - TLO Fashion')
 
-    <div class="row content">
-        <!-- Left Sidebar -->
-        <div class="col-lg-3 col-md-4 mb-4">
-            <div class="user-profile-card">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="user-avatar me-3">
-                        <i class="fas fa-user"></i>
+@section('content')
+<div class="tlo-full-width">
+    <!-- Hero -->
+    <section class="tlo-page-hero">
+        <div class="tlo-page-hero-inner">
+            <div class="tlo-hero-badge"><i class="fas fa-box"></i> Đơn hàng</div>
+            <h1 class="tlo-hero-title">Đơn hàng của tôi</h1>
+            <p class="tlo-hero-desc">Theo dõi trạng thái và quản lý đơn hàng</p>
+        </div>
+    </section>
+
+    <div class="user-page-layout">
+        <!-- Sidebar -->
+        <div>@include('client.partials.user-sidebar')</div>
+
+        <!-- Main Content -->
+        <div class="user-main-card tlo-animate">
+            <!-- Order Status Tabs -->
+            <ul class="nav nav-tabs order-tabs" id="orderTabs">
+                <li class="nav-item">
+                    <a class="nav-link active" data-bs-toggle="tab" href="#all-orders">Tất cả</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#pending">Chờ xác nhận</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#confirmed">Đã xác nhận</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#processing">Chờ lấy hàng</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#shipped">Đang giao</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#delivered">Đã giao</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#return_requested">Trả hàng</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#cancelled">Đã hủy</a>
+                </li>
+            </ul>
+
+            <!-- Search Box -->
+            <div class="search-box">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-search text-muted me-2"></i>
+                    <input type="text" placeholder="Tìm kiếm theo Tên Shop, ID đơn hàng hoặc Tên Sản phẩm"
+                        class="form-control-plaintext" id="searchInput">
+                </div>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Loading Spinner -->
+                <div id="loading-spinner" class="text-center py-5" style="display: none;">
+                    <div class="spinner-border" style="color: var(--tlo-accent);" role="status">
+                        <span class="visually-hidden">Đang tải...</span>
                     </div>
-                    <div>
+                    <p class="mt-3" style="color: var(--tlo-text-secondary);">Đang tải đơn hàng...</p>
+                </div>
+
+                <!-- All Orders -->
+                <div class="tab-pane fade show active" id="all-orders">
+                    <div id="orders-content">
                         @if (Auth::check())
-                            <h6 class="mb-1 fw-bold">{{ Auth::user()->name }}</h6>
-                            <small class="text-muted">{{ Auth::user()->phone ?? 'Chưa cập nhật số điện thoại' }}</small>
+                            @forelse ($orders as $status => $orderGroup)
+                                @foreach ($orderGroup as $order)
+                                    @if ($order && $order instanceof \App\Models\Order)
+                                        @include('client.orders._order_item', ['order' => $order, 'status' => $status])
+                                    @endif
+                                @endforeach
+                            @empty
+                                <div class="tlo-empty">
+                                    <div class="tlo-empty-icon"><i class="fas fa-box-open"></i></div>
+                                    <h3>Không có đơn hàng nào</h3>
+                                    <p>Bạn chưa có đơn hàng nào</p>
+                                </div>
+                            @endforelse
                         @else
-                            <h6 class="mb-1 fw-bold">Khách</h6>
-                            <small class="text-muted">Vui lòng đăng nhập</small>
+                            <div class="tlo-empty">
+                                <div class="tlo-empty-icon"><i class="fas fa-lock"></i></div>
+                                <h3>Vui lòng đăng nhập</h3>
+                                <p>Đăng nhập để xem đơn hàng</p>
+                                <a href="{{ route('login') }}" class="tlo-btn tlo-btn-primary">Đăng nhập</a>
+                            </div>
                         @endif
                     </div>
                 </div>
-                <a href="{{ route('orders.index') }}" class="text-primary text-decoration-none small">Xem đơn hàng</a>
-            </div>
 
-            <div class="promo-card">
-                <div class="d-flex">
-                    <div class="flex-grow-1 me-3">
-                        <p class="small mb-2 fw-bold">Quý khách là thành viên tại TLO Fashion</p>
-                        <p class="small text-muted mb-3">Quan tâm TLO Shop để kích hoạt điểm thưởng</p>
-                    </div>
-                    <div class="promo-image">
-                        <i class="fas fa-gift"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div class="sidebar">
-            <ul class="nav-menu">
-                <li><a href="{{ route('orders.index') }}"><i class="fas fa-box"></i> Đơn hàng của tôi</a></li>
-                <li><a href="{{ route('wishlist.index') }}"><i class="fas fa-heart"></i> Sản phẩm yêu thích</a></li>
-                <li><a href="{{ route('addresses.index') }}""><i class="fas fa-map-marker-alt"></i> Sổ địa chỉ</a></li>
-                <li><a href="{{ route('discounts.my-discounts') }}"><i class="fas fa-wallet"></i> Mã của tôi</a></li>
-                <li><a href="{{ route('logout') }}" class="text-danger"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
-            </ul>
-            </div>
-        </div>
-
-        <!-- Main Content -->
-        <div class="col-lg-9 col-md-8">
-            <div class="main-content">
-                <!-- Order Status Tabs -->
-                <ul class="nav nav-tabs order-tabs" id="orderTabs">
-                    <li class="nav-item">
-                        <a class="nav-link active" data-bs-toggle="tab" href="#all-orders">Tất cả</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="tab" href="#pending">Chờ xác nhận</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="tab" href="#confirmed">Đã xác nhận</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="tab" href="#processing">Chờ lấy hàng</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="tab" href="#shipped">Đang giao</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="tab" href="#delivered">Đã giao</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="tab" href="#cancelled">Đã hủy</a>
-                    </li>
-                </ul>
-
-                <!-- Search Box -->
-                <div class="search-box">
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-search text-muted me-2"></i>
-                        <input type="text" placeholder="Tìm kiếm theo Tên Shop, ID đơn hàng hoặc Tên Sản phẩm"
-                            class="form-control-plaintext" id="searchInput">
-                    </div>
-                </div>
-
-                <!-- Tab Content -->
-                <div class="tab-content">
-                    <!-- Loading Spinner -->
-                    <div id="loading-spinner" class="text-center py-5" style="display: none;">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Đang tải...</span>
-                        </div>
-                        <p class="mt-3 text-muted">Đang tải đơn hàng...</p>
-                    </div>
-
-                    <!-- All Orders -->
-                    <div class="tab-pane fade show active" id="all-orders">
-                        <div id="orders-content">
-                            @if (Auth::check())
-                                @forelse ($orders as $status => $orderGroup)
-                                    @foreach ($orderGroup as $order)
-                                        @if ($order && $order instanceof \App\Models\Order)
-                                            @include('client.orders._order_item', ['order' => $order, 'status' => $status])
-                                        @endif
-                                    @endforeach
-                                @empty
-                                    <div class="text-center py-5">
-                                        <i class="fas fa-box fa-3x text-muted mb-3"></i>
-                                        <p class="text-muted">Không có đơn hàng nào</p>
-                                    </div>
-                                @endforelse
-                            @else
-                                <div class="text-center py-5">
-                                    <i class="fas fa-box fa-3x text-muted mb-3"></i>
-                                    <p class="text-muted">Vui lòng đăng nhập để xem đơn hàng</p>
-                                    <a href="{{ route('login') }}" class="btn btn-primary">Đăng nhập</a>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-
-                    <!-- Pending Orders -->
-                    <div class="tab-pane fade" id="pending">
-                        <div id="orders-content-pending"></div>
-                    </div>
-
-                    <!-- Confirmed Orders -->
-                    <div class="tab-pane fade" id="confirmed">
-                        <div id="orders-content-confirmed"></div>
-                    </div>
-
-                    <!-- Processing Orders -->
-                    <div class="tab-pane fade" id="processing">
-                        <div id="orders-content-processing"></div>
-                    </div>
-
-                    <!-- Shipped Orders -->
-                    <div class="tab-pane fade" id="shipped">
-                        <div id="orders-content-shipped"></div>
-                    </div>
-
-                    <!-- Delivered Orders -->
-                    <div class="tab-pane fade" id="delivered">
-                        <div id="orders-content-delivered"></div>
-                    </div>
-
-                    <!-- Cancelled Orders -->
-                    <div class="tab-pane fade" id="cancelled">
-                        <div id="orders-content-cancelled"></div>
-                    </div>
-                </div>
+                <div class="tab-pane fade" id="pending"><div id="orders-content-pending"></div></div>
+                <div class="tab-pane fade" id="confirmed"><div id="orders-content-confirmed"></div></div>
+                <div class="tab-pane fade" id="processing"><div id="orders-content-processing"></div></div>
+                <div class="tab-pane fade" id="shipped"><div id="orders-content-shipped"></div></div>
+                <div class="tab-pane fade" id="delivered"><div id="orders-content-delivered"></div></div>
+                <div class="tab-pane fade" id="return_requested"><div id="orders-content-return_requested"></div></div>
+                <div class="tab-pane fade" id="returned"><div id="orders-content-returned"></div></div>
+                <div class="tab-pane fade" id="cancelled"><div id="orders-content-cancelled"></div></div>
             </div>
         </div>
     </div>
+</div>
 @endsection
 
 @section('scripts')
 <style>
-    body {
-        background-color: #f8f9fa;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    .content {
-        border-radius: 10px;
-        padding: 10px 0px;
-    }
-
-    .sidebar {
-        background-color: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .user-profile-card {
-        background-color: #fff5f5;
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 20px;
-    }
-
-    .user-avatar {
-        width: 50px;
-        height: 50px;
-        background-color: #ff6b35;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 20px;
-    }
-
-    .promo-card {
-        background-color: #fff5f5;
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 20px;
-        border: 1px solid #ffe6e6;
-    }
-
-    .nav-menu {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .nav-menu li {
-        border-bottom: 1px solid #f0f0f0;
-    }
-
-    .nav-menu li:last-child {
-        border-bottom: none;
-    }
-
-    .nav-menu a {
-        display: flex;
-        align-items: center;
-        padding: 15px 20px;
-        text-decoration: none;
-        color: #333;
-        transition: all 0.3s ease;
-    }
-
-    .nav-menu a:hover {
-        background-color: #f8f9fa;
-        border-left: 3px solid #ff6b35;
-    }
-    .nav-menu a.active {
-        background-color: #f8f9fa;
-        border-left: 3px solid #ff6b35;
-    }
-
-    .nav-menu i {
-        margin-right: 12px;
-        width: 20px;
-        color: #666;
-    }
-
-    .main-content {
-        background-color: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-    }
-
-    .btn-promo {
-        background-color: #dc3545;
-        border-color: #dc3545;
-        font-size: 12px;
-        padding: 6px 12px;
-    }
-
-    .breadcrumb-item a {
-        color: #007bff;
-        text-decoration: none;
-    }
-
-    .promo-image {
-        width: 50px;
-        height: 60px;
-        background: linear-gradient(45deg, #ff6b35, #ffa500);
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 20px;
-    }
-
     .order-tabs {
-        border-bottom: 2px solid #f0f0f0;
-        margin-bottom: 20px;
+        border-bottom: 2px solid var(--tlo-border);
+        padding: 0 24px;
+        margin-bottom: 0;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        white-space: nowrap;
     }
 
     .order-tabs .nav-link {
         border: none;
-        color: #666;
-        padding: 15px 20px;
+        color: var(--tlo-text-secondary);
+        padding: 14px 18px;
         font-weight: 500;
+        font-size: 0.88rem;
         border-bottom: 2px solid transparent;
+        transition: var(--tlo-transition);
+    }
+
+    .order-tabs .nav-link:hover {
+        color: var(--tlo-accent);
     }
 
     .order-tabs .nav-link.active {
-        color: #ff6b35;
-        border-bottom-color: #ff6b35;
+        color: var(--tlo-accent);
+        border-bottom-color: var(--tlo-accent);
         background: none;
+        font-weight: 600;
     }
 
     .search-box {
-        background-color: #f8f9fa;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        padding: 12px 15px;
-        margin-bottom: 20px;
+        background: var(--tlo-surface-alt);
+        border-bottom: 1px solid var(--tlo-border);
+        padding: 12px 24px;
     }
 
     .search-box input {
@@ -308,252 +151,203 @@
         background: none;
         outline: none;
         width: 100%;
+        font-size: 0.88rem;
+        color: var(--tlo-text-primary);
+    }
+
+    .search-box input::placeholder {
+        color: var(--tlo-text-light);
+    }
+
+    .tab-content {
+        padding: 20px 24px;
     }
 
     .order-item {
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        margin-bottom: 15px;
+        border: 1px solid var(--tlo-border);
+        border-radius: var(--tlo-radius-md);
+        margin-bottom: 16px;
         overflow: hidden;
+        transition: var(--tlo-transition);
+    }
+
+    .order-item:hover {
+        box-shadow: var(--tlo-shadow-sm);
+        border-color: rgba(255, 107, 107, 0.15);
     }
 
     .order-header {
-        background-color: #f8f9fa;
+        background: var(--tlo-surface-alt);
         padding: 12px 20px;
-        border-bottom: 1px solid #e0e0e0;
+        border-bottom: 1px solid var(--tlo-border);
         display: flex;
         align-items: center;
         justify-content: space-between;
     }
 
-    .store-info {
-        display: flex;
-        align-items: center;
-    }
-
-    .order-details {
-        text-align: right;
-    }
+    .store-info { display: flex; align-items: center; }
+    .order-details { text-align: right; }
 
     .store-badge {
-        background-color: #28a745;
+        background: var(--tlo-accent);
         color: white;
         font-size: 10px;
-        padding: 2px 6px;
-        border-radius: 3px;
+        padding: 2px 8px;
+        border-radius: 6px;
         margin-left: 8px;
-    }
-
-    .official-badge {
-        background-color: #007bff;
-    }
-
-    .order-body {
-        padding: 20px;
-        border-bottom: 1px solid #f0f0f0;
-    }
-
-    .order-body:last-of-type {
-        border-bottom: none;
-    }
-
-    .product-info {
-        display: flex;
-    }
-
-    .product-image {
-        width: 80px;
-        height: 80px;
-        border-radius: 8px;
-        margin-right: 15px;
-        object-fit: cover;
-    }
-
-    .product-details {
-        flex: 1;
-    }
-
-    .product-name {
-        font-weight: 500;
-        margin-bottom: 5px;
-        color: #333;
-    }
-
-    .product-attributes-container {
-        margin-top: 5px;
-    }
-
-    .total-variant {
-        margin-bottom: 5px;
-    }
-
-    .product-quantity, .order-number, .product-size, .product-color, .attribute {
-        color: #666;
-        font-size: 14px; /* Đảm bảo tất cả có cùng kích thước */
-    }
-
-    .product-attributes {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .product-price {
-        text-align: right;
-    }
-
-    .original-price {
-        text-decoration: line-through;
-        color: #999;
-        font-size: 14px;
-    }
-
-    .current-price {
-        color: #ff6b35;
-        font-weight: 500;
-        font-size: 16px;
-    }
-
-    .order-footer {
-        border-top: 1px solid #e0e0e0;
-        padding: 15px 20px;
-        background-color: #fafafa;
-    }
-
-    .order-total {
-        text-align: right;
-        margin-bottom: 15px;
-    }
-
-    .total-label {
-        color: #666;
-        margin-right: 10px;
-    }
-
-    .total-amount {
-        color: #ff6b35;
-        font-size: 18px;
         font-weight: 600;
     }
 
-    .order-actions {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
+    .official-badge { background: #2563eb; }
 
-    .seller-note {
-        color: #007bff;
-        font-size: 14px;
-        cursor: pointer;
-        text-decoration: none;
+    .order-body {
+        padding: 20px;
+        border-bottom: 1px solid var(--tlo-border);
     }
+    .order-body:last-of-type { border-bottom: none; }
 
-    .seller-note:hover {
-        text-decoration: underline;
+    .product-info { display: flex; }
+    .product-image {
+        width: 80px;
+        height: 80px;
+        border-radius: 12px;
+        margin-right: 15px;
+        object-fit: cover;
+        border: 1px solid var(--tlo-border);
     }
+    .product-details { flex: 1; }
+    .product-name {
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: var(--tlo-text-primary);
+        font-size: 0.9rem;
+    }
+    .product-attributes-container { margin-top: 5px; }
+    .total-variant { margin-bottom: 5px; }
+    .product-quantity, .order-number, .product-size, .product-color, .attribute {
+        color: var(--tlo-text-secondary);
+        font-size: 0.82rem;
+    }
+    .product-attributes { display: flex; align-items: center; gap: 10px; }
+    .product-price { text-align: right; }
+    .original-price { text-decoration: line-through; color: var(--tlo-text-light); font-size: 0.82rem; }
+    .current-price { color: var(--tlo-accent); font-weight: 600; font-size: 0.95rem; }
 
-    .action-buttons {
-        display: flex;
-        gap: 10px;
+    .order-footer {
+        border-top: 1px solid var(--tlo-border);
+        padding: 15px 20px;
+        background: var(--tlo-surface-alt);
     }
+    .order-total { text-align: right; margin-bottom: 15px; }
+    .total-label { color: var(--tlo-text-secondary); margin-right: 10px; font-size: 0.88rem; }
+    .total-amount { color: var(--tlo-accent); font-size: 1.1rem; font-weight: 700; }
 
-    .btn-outline-primary {
-        border-color: #007bff;
-        color: #007bff;
-    }
-
-    .btn-outline-success {
-        border-color: #28a745;
-        color: #28a745;
-    }
-
-    .btn-outline-success:disabled {
-        background-color: #d4edda;
-        border-color: #c3e6cb;
-        color: #155724;
-    }
+    .order-actions { display: flex; justify-content: space-between; align-items: center; }
+    .seller-note { color: var(--tlo-accent); font-size: 0.82rem; cursor: pointer; text-decoration: none; }
+    .seller-note:hover { text-decoration: underline; }
+    .action-buttons { display: flex; gap: 10px; }
 
     .buy-again {
-        background-color: #e5470d;
-        border-color: #e5470d;
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        border: none;
         color: white;
-        font-weight: 400;
+        font-weight: 500;
+        border-radius: 10px;
+        padding: 6px 14px;
+        font-size: 0.85rem;
+        box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
     }
-
-    .buy-again:hover {
-        background-color: #e4460db3;
-        border-color: #e4460db3;
-        color: white;
-        font-weight: 400;
-    }
+    .buy-again:hover { color: white; transform: translateY(-1px); }
 
     .btn-pay {
-        background: linear-gradient(135deg, #00dd9e 0%, #00bf89 100%);
+        background: linear-gradient(135deg, #00dd9e, #00bf89);
         color: white;
-        font-weight: 400;
+        font-weight: 500;
+        border-radius: 10px;
+        border: none;
     }
 
-    .btn-sm {
-        padding: 6px 12px;
-        font-size: 14px;
-    }
+    .additional-products { display: none; }
+    .additional-products.show { display: block; animation: slideDown 0.3s ease-in-out; }
+    @keyframes slideDown { from { opacity: 0; } to { opacity: 1; } }
 
-    .btn {
-        font-weight: 400;
-    }
+    #loading-spinner { position: relative; z-index: 1000; }
+    .spinner-border { width: 3rem; height: 3rem; }
+    .tab-pane { transition: opacity 0.3s ease-in-out; }
+    .tab-pane.fade { opacity: 0; }
+    .tab-pane.fade.show { opacity: 1; }
 
-    .additional-products {
-        display: none;
-    }
-
-    .additional-products.show {
-        display: block;
-        animation: slideDown 0.3s ease-in-out;
-    }
-
-    @keyframes slideDown {
-        from {
-            opacity: 0;
-            max-height: 0;
-        }
-        to {
-            opacity: 1;
-            max-height: 1000px;
-        }
-    }
-
-    /* Loading spinner styles */
-    #loading-spinner {
-        position: relative;
-        z-index: 1000;
-    }
-
-    .spinner-border {
-        width: 3rem;
-        height: 3rem;
-    }
-
-    /* Tab transition effects */
-    .tab-pane {
-        transition: opacity 0.3s ease-in-out;
-    }
-
-    .tab-pane.fade {
-        opacity: 0;
-    }
-
-    .tab-pane.fade.show {
-        opacity: 1;
-    }
-
-    /* Error message styles */
     .error-message {
-        background-color: #fff3cd;
-        border: 1px solid #ffeaa7;
-        border-radius: 8px;
+        background: rgba(255, 107, 107, 0.06);
+        border: 1px solid rgba(255, 107, 107, 0.15);
+        border-radius: var(--tlo-radius-md);
         padding: 20px;
         text-align: center;
+    }
+
+    @media (max-width: 768px) {
+        .order-tabs { padding: 0 16px; }
+        .order-tabs .nav-link { padding: 10px 12px; font-size: 0.82rem; }
+        .tab-content { padding: 16px; }
+        .order-header, .order-body, .order-footer { padding: 12px 16px; }
+    }
+
+    /* Nút Xác nhận đã nhận hàng */
+    .btn-confirm-received {
+        background: linear-gradient(135deg, #00b894, #00cec9);
+        border: none;
+        color: white;
+        font-weight: 600;
+        border-radius: 10px;
+        padding: 6px 14px;
+        font-size: 0.85rem;
+        box-shadow: 0 4px 12px rgba(0, 184, 148, 0.25);
+        transition: all 0.2s;
+    }
+    .btn-confirm-received:hover {
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(0, 184, 148, 0.35);
+    }
+
+    /* Nút Trả hàng/Hoàn tiền */
+    .btn-return-request {
+        background: linear-gradient(135deg, #fdcb6e, #e17055);
+        border: none;
+        color: white;
+        font-weight: 500;
+        border-radius: 10px;
+        padding: 6px 14px;
+        font-size: 0.85rem;
+        box-shadow: 0 4px 12px rgba(225, 112, 85, 0.2);
+        transition: all 0.2s;
+    }
+    .btn-return-request:hover {
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(225, 112, 85, 0.35);
+    }
+
+    /* Box hiển thị lý do trả hàng */
+    .return-reason-box {
+        background: rgba(253, 203, 110, 0.1);
+        border-left: 4px solid #fdcb6e;
+        padding: 12px 20px;
+        font-size: 0.85rem;
+        color: var(--tlo-text-primary);
+    }
+
+    /* Modal styles */
+    .modal-content {
+        border-radius: var(--tlo-radius-md, 12px);
+        border: none;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    }
+    .modal-header {
+        border-bottom: 1px solid var(--tlo-border, #eee);
+    }
+    .modal-footer {
+        border-top: 1px solid var(--tlo-border, #eee);
     }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

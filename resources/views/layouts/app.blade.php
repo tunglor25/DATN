@@ -7,20 +7,24 @@
     <title>@yield('title', 'Admin Dashboard')</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- CSS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chartist@0.11.4/dist/chartist.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="{{ asset('css/admin-styles.css') }}">
 
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
-            color: #333;
-            padding-top: 60px;
-            padding-left: 250px;
-            transition: padding-left 0.3s ease;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f4f7fe;
+            color: #2b3674;
+            padding-top: 70px;
+            padding-left: 260px;
+            transition: padding-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         body.sidebar-collapsed {
@@ -35,11 +39,11 @@
 
         .main-content {
             flex: 1;
-            padding: 20px;
-            background-color: white;
+            padding: 24px;
+            background-color: transparent;
             margin: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border-radius: 0;
+            box-shadow: none;
         }
 
         #nprogress .bar {
@@ -89,6 +93,12 @@
 
 
 
+
+
+
+    </style>
+    <style>
+        @include('admin.partials.admin-styles')
     </style>
     @yield('styles')
 </head>

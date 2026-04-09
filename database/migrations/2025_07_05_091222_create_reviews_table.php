@@ -20,6 +20,7 @@ return new class extends Migration
             $table->text('comment')->nullable();
             $table->json('images')->nullable(); // Lưu array các đường dẫn ảnh
             $table->boolean('is_verified')->default(false);
+            $table->boolean('is_hidden')->default(false);
             $table->timestamps();
 
             // Indexes

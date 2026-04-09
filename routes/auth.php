@@ -11,6 +11,7 @@ use Illuminate\Auth\Events\Registered;
 // Đăng ký, đăng nhập
 Route::get('login', [AuthController::class, 'showLoginForm'])->name('login.form');
 Route::post('register', [AuthController::class, 'register'])->name('register');
+Route::get('register', function () { return redirect('/'); });
 Route::post('login', [AuthController::class, 'login'])->name('login');
 Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 

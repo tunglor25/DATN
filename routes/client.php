@@ -63,6 +63,8 @@ Route::prefix('ho-so')->middleware(['auth'])->group(function () {
     Route::get('/don-hang/ajax/{status}', [OrderController::class, 'getOrdersByStatus'])->name('orders.ajax');
     Route::post('/don-hang/{orderId}/huy', [OrderController::class, 'cancel'])->name('orders.cancel');
     Route::post('/don-hang/{orderId}/mua-lai', [OrderController::class, 'buyAgain'])->name('orders.buy-again');
+    Route::post('/don-hang/{orderId}/xac-nhan-nhan-hang', [OrderController::class, 'confirmReceived'])->name('orders.confirm-received');
+    Route::post('/don-hang/{orderId}/yeu-cau-tra-hang', [OrderController::class, 'requestReturn'])->name('orders.request-return');
     Route::get('/don-hang/{orderId}', [OrderController::class, 'show'])->name('orders.show');
 
     // Địa chỉ

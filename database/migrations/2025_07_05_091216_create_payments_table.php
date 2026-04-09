@@ -18,7 +18,12 @@ return new class extends Migration
             $table->decimal('amount', 12, 2);
             $table->string('transaction_id')->nullable();
             $table->string('status')->default('pending'); // pending, success, failed
+            $table->string('response_code')->nullable();
+            $table->text('response_message')->nullable();
+            $table->string('bank_code')->nullable();
+            $table->json('payment_data')->nullable();
             $table->timestamp('paid_at')->nullable();
+            $table->timestamp('expires_at')->nullable();
             $table->timestamps();
         });
     }

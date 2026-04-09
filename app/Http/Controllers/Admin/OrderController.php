@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Traits\StockManagement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -63,6 +64,8 @@ class OrderController extends Controller
             'processing' => Order::where('status', 'processing')->count(),
             'shipped' => Order::where('status', 'shipped')->count(),
             'delivered' => Order::where('status', 'delivered')->count(),
+            'return_requested' => Order::where('status', 'return_requested')->count(),
+            'returned' => Order::where('status', 'returned')->count(),
             'cancelled' => Order::where('status', 'cancelled')->count(),
         ];
 
@@ -79,7 +82,7 @@ class OrderController extends Controller
     public function updateStatus(Request $request, Order $order)
     {
         $request->validate([
-            'status' => 'required|in:pending,confirmed,processing,shipped,delivered,cancelled',
+            'status' => 'required|in:pending,confirmed,processing,shipped,delivered,return_requested,returned,cancelled',
             'notes' => 'nullable|string|max:500'
         ]);
 
@@ -290,6 +293,8 @@ class OrderController extends Controller
             'processing' => 'Đang xử lý',
             'shipped' => 'Đã gửi hàng',
             'delivered' => 'Đã giao hàng',
+            'return_requested' => 'Yêu cầu trả hàng',
+            'returned' => 'Đã trả hàng',
             'cancelled' => 'Đã hủy'
         ];
 
@@ -413,4 +418,76 @@ class OrderController extends Controller
         );
     }
 
+    /**
+     * Phê duyệt yêu cầu trả hàng
+     */
+    public function approveReturn(Request $request, Order $order)
+    {
+        if ($order->status !== 'return_requested') {
+            return redirect()->back()->with('error', 
+                'Chỉ có thể phê duyệt đơn hàng đang ở trạng thái "Yêu cầu trả hàng".'
+            );
+        }
+
+        // Cập nhật trạng thái
+        $order->status = 'returned';
+        $order->returned_at = now();
+        
+        // Xử lý hoàn tiền
+        if ($order->payment_status === 'paid') {
+            $order->payment_status = 'refund_pending';
+            $order->notes = ($order->notes ? $order->notes . "\n" : "") . 
+                "Phê duyệt trả hàng - Chờ hoàn tiền. " . now()->format('d/m/Y H:i');
+        } else {
+            $order->notes = ($order->notes ? $order->notes . "\n" : "") . 
+                "Phê duyệt trả hàng. " . now()->format('d/m/Y H:i');
+        }
+
+        // Cộng lại tồn kho
+        try {
+            $this->restoreStockOnCancellation($order);
+            $order->notes = ($order->notes ? $order->notes . "\n" : "") . 
+                "Đã cộng lại tồn kho cho tất cả sản phẩm. " . now()->format('d/m/Y H:i');
+        } catch (\Exception $e) {
+            Log::error("Lỗi cộng lại tồn kho khi trả hàng", [
+                'order_id' => $order->id,
+                'error' => $e->getMessage()
+            ]);
+            $order->notes = ($order->notes ? $order->notes . "\n" : "") . 
+                "LỖI: Không thể cộng lại tồn kho - " . $e->getMessage() . ". " . now()->format('d/m/Y H:i');
+        }
+
+        $order->save();
+
+        return redirect()->back()->with('success', 
+            'Đã phê duyệt yêu cầu trả hàng thành công.'
+        );
+    }
+
+    /**
+     * Từ chối yêu cầu trả hàng
+     */
+    public function rejectReturn(Request $request, Order $order)
+    {
+        if ($order->status !== 'return_requested') {
+            return redirect()->back()->with('error', 
+                'Chỉ có thể từ chối đơn hàng đang ở trạng thái "Yêu cầu trả hàng".'
+            );
+        }
+
+        $rejectReason = $request->input('reject_reason', '');
+
+        // Quay lại trạng thái delivered
+        $order->status = 'delivered';
+        $order->notes = ($order->notes ? $order->notes . "\n" : "") . 
+            "Từ chối trả hàng" . ($rejectReason ? ": {$rejectReason}" : "") . ". " . now()->format('d/m/Y H:i');
+        $order->return_reason = null;
+        $order->return_requested_at = null;
+
+        $order->save();
+
+        return redirect()->back()->with('success', 
+            'Đã từ chối yêu cầu trả hàng. Đơn hàng quay về trạng thái Đã giao.'
+        );
+    }
 } 

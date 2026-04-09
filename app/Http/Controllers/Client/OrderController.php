@@ -50,8 +50,8 @@ class OrderController extends Controller
         try {
             $user = Auth::user();
             
-            // Validate status parameter
-            $validStatuses = ['all', 'pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
+            // Validate status parameter - thêm return_requested và returned
+            $validStatuses = ['all', 'pending', 'confirmed', 'processing', 'shipped', 'delivered', 'return_requested', 'returned', 'cancelled'];
             if (!in_array($status, $validStatuses)) {
                 return response()->json(['error' => 'Invalid status'], 400);
             }
@@ -85,10 +85,9 @@ class OrderController extends Controller
         }
     }
 
-
-
-
-
+    /**
+     * Hủy đơn hàng - cho phép ở pending và confirmed
+     */
     public function cancel(Request $request, $orderId)
     {
         if (!Auth::check()) {
@@ -100,9 +99,9 @@ class OrderController extends Controller
             return redirect()->back()->with('error', 'Đơn hàng không tồn tại!');
         }
         
-        // Chỉ cho phép hủy đơn hàng ở trạng thái pending
-        if ($order->status !== 'pending') {
-            return redirect()->back()->with('error', 'Chỉ có thể hủy đơn hàng ở trạng thái chờ xác nhận!');
+        // Cho phép hủy đơn hàng ở trạng thái pending và confirmed
+        if (!$order->canBeCancelled()) {
+            return redirect()->back()->with('error', 'Chỉ có thể hủy đơn hàng ở trạng thái chờ xác nhận hoặc đã xác nhận!');
         }
         
         // Xử lý logic hủy đơn hàng và cập nhật payment_status
@@ -113,6 +112,83 @@ class OrderController extends Controller
         $order->save();
         
         return redirect()->back()->with('success', 'Đơn hàng đã được hủy thành công!');
+    }
+
+    /**
+     * Xác nhận đã nhận hàng - khách hàng xác nhận shipped → delivered
+     */
+    public function confirmReceived(Request $request, $orderId)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Vui lòng đăng nhập!');
+        }
+
+        $order = Order::where('id', $orderId)->where('user_id', Auth::id())->first();
+        if (!$order) {
+            return redirect()->back()->with('error', 'Đơn hàng không tồn tại!');
+        }
+
+        if (!$order->canConfirmReceived()) {
+            return redirect()->back()->with('error', 'Đơn hàng không ở trạng thái đang giao!');
+        }
+
+        // Cập nhật trạng thái thành delivered
+        $order->status = 'delivered';
+        $order->delivered_at = now();
+
+        // Tự động cập nhật thanh toán cho COD khi nhận hàng
+        if ($order->payment_method === 'cod' && $order->payment_status === 'pending') {
+            $order->payment_status = 'paid';
+            $order->paid_at = now();
+            $order->notes = ($order->notes ? $order->notes . "\n" : "") .
+                "Khách hàng xác nhận đã nhận hàng và thanh toán COD. " . now()->format('d/m/Y H:i');
+        } else {
+            $order->notes = ($order->notes ? $order->notes . "\n" : "") .
+                "Khách hàng xác nhận đã nhận hàng. " . now()->format('d/m/Y H:i');
+        }
+
+        $order->save();
+
+        return redirect()->back()->with('success', 'Đã xác nhận nhận hàng thành công! Cảm ơn bạn đã mua sắm.');
+    }
+
+    /**
+     * Yêu cầu trả hàng/hoàn tiền
+     */
+    public function requestReturn(Request $request, $orderId)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Vui lòng đăng nhập!');
+        }
+
+        $request->validate([
+            'return_reason' => 'required|string|min:10|max:1000',
+        ], [
+            'return_reason.required' => 'Vui lòng nhập lý do trả hàng.',
+            'return_reason.min' => 'Lý do trả hàng phải có ít nhất 10 ký tự.',
+            'return_reason.max' => 'Lý do trả hàng không được quá 1000 ký tự.',
+        ]);
+
+        $order = Order::where('id', $orderId)->where('user_id', Auth::id())->first();
+        if (!$order) {
+            return redirect()->back()->with('error', 'Đơn hàng không tồn tại!');
+        }
+
+        if (!$order->canRequestReturn()) {
+            $daysLimit = Order::RETURN_DAYS_LIMIT;
+            return redirect()->back()->with('error', "Không thể yêu cầu trả hàng! Thời hạn trả hàng là {$daysLimit} ngày kể từ khi nhận.");
+        }
+
+        // Cập nhật trạng thái
+        $order->status = 'return_requested';
+        $order->return_reason = $request->return_reason;
+        $order->return_requested_at = now();
+        $order->notes = ($order->notes ? $order->notes . "\n" : "") .
+            "Khách hàng yêu cầu trả hàng. Lý do: " . $request->return_reason . ". " . now()->format('d/m/Y H:i');
+
+        $order->save();
+
+        return redirect()->back()->with('success', 'Đã gửi yêu cầu trả hàng thành công! Chúng tôi sẽ xem xét và phản hồi sớm nhất.');
     }
 
     /**
@@ -161,7 +237,7 @@ class OrderController extends Controller
                 break;
         }
 
-        // THÊM LOGIC MỚI: Cộng lại tồn kho khi hủy đơn hàng
+        // Cộng lại tồn kho khi hủy đơn hàng
         try {
             $this->restoreStockOnCancellation($order);
             $order->notes = ($order->notes ? $order->notes . "\n" : "") . 
@@ -174,22 +250,6 @@ class OrderController extends Controller
             $order->notes = ($order->notes ? $order->notes . "\n" : "") . 
                 "LỖI: Không thể cộng lại tồn kho - " . $e->getMessage() . ". " . now()->format('d/m/Y H:i');
         }
-
-        // Không cần khôi phục sản phẩm về giỏ hàng nữa vì đã xóa từ trước
-        // if ($order->payment_method === 'vnpay' && $order->payment_status === 'pending') {
-        //     try {
-        //         $this->restoreItemsToCart($order);
-        //         $order->notes = ($order->notes ? $order->notes . "\n" : "") . 
-        //             "Đã khôi phục sản phẩm về giỏ hàng. " . now()->format('d/m/Y H:i');
-        //     } catch (\Exception $e) {
-        //         \Log::error("Lỗi khi khôi phục sản phẩm về giỏ hàng", [
-        //             'order_id' => $order->id,
-        //             'error' => $e->getMessage()
-        //         ]);
-        //         $order->notes = ($order->notes ? $order->notes . "\n" : "") . 
-        //             "LỖI: Không thể khôi phục sản phẩm về giỏ hàng - " . $e->getMessage() . ". " . now()->format('d/m/Y H:i');
-        //     }
-        // }
     }
 
     public function buyAgain(Request $request, $orderId)
@@ -203,9 +263,9 @@ class OrderController extends Controller
             return redirect()->back()->with('error', 'Đơn hàng không tồn tại!');
         }
 
-        // Chỉ cho phép mua lại đơn hàng đã giao hoặc đã hủy
-        if (!in_array($order->status, ['delivered', 'cancelled'])) {
-            return redirect()->back()->with('error', 'Chỉ có thể mua lại đơn hàng đã giao hoặc đã hủy!');
+        // Cho phép mua lại đơn hàng đã giao, đã hủy, đã trả hàng
+        if (!in_array($order->status, ['delivered', 'cancelled', 'returned'])) {
+            return redirect()->back()->with('error', 'Chỉ có thể mua lại đơn hàng đã giao, đã hủy hoặc đã trả hàng!');
         }
 
         // Chuẩn bị dữ liệu sản phẩm cho session
@@ -292,7 +352,7 @@ class OrderController extends Controller
         }
 
         // Thêm sự kiện xác nhận (nếu trạng thái >= confirmed)
-        if (in_array($order->status, ['confirmed', 'processing', 'shipped', 'delivered'])) {
+        if (in_array($order->status, ['confirmed', 'processing', 'shipped', 'delivered', 'return_requested', 'returned'])) {
             $timeline[] = [
                 'date' => $order->paid_at ? $order->paid_at->addMinutes(5) : $order->created_at->addMinutes(30),
                 'title' => 'Đơn hàng được xác nhận',
@@ -304,7 +364,7 @@ class OrderController extends Controller
         }
 
         // Thêm sự kiện đang xử lý (nếu trạng thái >= processing)
-        if (in_array($order->status, ['processing', 'shipped', 'delivered'])) {
+        if (in_array($order->status, ['processing', 'shipped', 'delivered', 'return_requested', 'returned'])) {
             $timeline[] = [
                 'date' => $order->paid_at ? $order->paid_at->addMinutes(10) : $order->created_at->addHours(1),
                 'title' => 'Đang xử lý đơn hàng',
@@ -316,7 +376,7 @@ class OrderController extends Controller
         }
 
         // Thêm sự kiện gửi hàng (nếu trạng thái >= shipped)
-        if (in_array($order->status, ['shipped', 'delivered'])) {
+        if (in_array($order->status, ['shipped', 'delivered', 'return_requested', 'returned'])) {
             $timeline[] = [
                 'date' => $order->shipped_at ?? ($order->paid_at ? $order->paid_at->addHours(2) : $order->created_at->addHours(3)),
                 'title' => 'Đơn hàng đang được giao',
@@ -327,8 +387,8 @@ class OrderController extends Controller
             ];
         }
 
-        // Thêm sự kiện giao hàng (nếu trạng thái = delivered)
-        if ($order->status === 'delivered') {
+        // Thêm sự kiện giao hàng (nếu trạng thái >= delivered)
+        if (in_array($order->status, ['delivered', 'return_requested', 'returned'])) {
             $timeline[] = [
                 'date' => $order->delivered_at ?? ($order->paid_at ? $order->paid_at->addDays(1) : $order->created_at->addDays(2)),
                 'title' => 'Đã giao hàng',
@@ -336,6 +396,30 @@ class OrderController extends Controller
                 'icon' => 'fas fa-home',
                 'status' => 'completed',
                 'priority' => 6
+            ];
+        }
+
+        // Thêm sự kiện yêu cầu trả hàng
+        if (in_array($order->status, ['return_requested', 'returned'])) {
+            $timeline[] = [
+                'date' => $order->return_requested_at ?? $order->updated_at,
+                'title' => 'Yêu cầu trả hàng',
+                'description' => 'Khách hàng yêu cầu trả hàng' . ($order->return_reason ? '. Lý do: ' . $order->return_reason : ''),
+                'icon' => 'fas fa-undo',
+                'status' => $order->status === 'returned' ? 'completed' : 'pending',
+                'priority' => 7
+            ];
+        }
+
+        // Thêm sự kiện đã trả hàng
+        if ($order->status === 'returned') {
+            $timeline[] = [
+                'date' => $order->returned_at ?? $order->updated_at,
+                'title' => 'Đã trả hàng',
+                'description' => 'Yêu cầu trả hàng đã được phê duyệt và xử lý',
+                'icon' => 'fas fa-check-double',
+                'status' => 'completed',
+                'priority' => 8
             ];
         }
 
@@ -353,16 +437,12 @@ class OrderController extends Controller
 
         // Sắp xếp timeline theo priority trước, sau đó theo thời gian
         usort($timeline, function ($a, $b) {
-            // Nếu priority khác nhau, sắp xếp theo priority
             if ($a['priority'] !== $b['priority']) {
                 return $a['priority'] - $b['priority'];
             }
-            // Nếu priority giống nhau, sắp xếp theo thời gian
             return $a['date']->timestamp - $b['date']->timestamp;
         });
 
         return $timeline;
     }
-
-
 }
